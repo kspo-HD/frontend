@@ -25,6 +25,8 @@ interface AiSummary {
   market_analysis?: string;
   competition_analysis?: string;
   budget_analysis?: string;
+  cost_saving_tips?: string[];
+  survival_strategies?: string[];
   risks?: string[];
   opportunities?: string[];
   recommendations?: string[];
@@ -222,6 +224,33 @@ function AiReport({ ai }: { ai: AiSummary }) {
         )}
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        {ai.cost_saving_tips && ai.cost_saving_tips.length > 0 && (
+          <div className="bg-amber-50 border border-amber-100 rounded p-4">
+            <h3 className="text-[12px] font-bold text-amber-700 mb-2">💰 비용 절감 전략</h3>
+            <ul className="flex flex-col gap-1.5">
+              {ai.cost_saving_tips.map((t, i) => (
+                <li key={i} className="text-[12px] text-amber-800 flex gap-1.5">
+                  <span className="shrink-0 mt-0.5">·</span>{t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {ai.survival_strategies && ai.survival_strategies.length > 0 && (
+          <div className="bg-purple-50 border border-purple-100 rounded p-4">
+            <h3 className="text-[12px] font-bold text-purple-700 mb-2">🛡️ 폐업 방지 전략</h3>
+            <ul className="flex flex-col gap-1.5">
+              {ai.survival_strategies.map((s, i) => (
+                <li key={i} className="text-[12px] text-purple-800 flex gap-1.5">
+                  <span className="shrink-0 mt-0.5">·</span>{s}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
       <div className="grid grid-cols-3 gap-4">
         {ai.risks && ai.risks.length > 0 && (
           <div className="bg-red-50 border border-red-100 rounded p-4">
@@ -249,11 +278,11 @@ function AiReport({ ai }: { ai: AiSummary }) {
         )}
         {ai.recommendations && ai.recommendations.length > 0 && (
           <div className="bg-blue-50 border border-blue-100 rounded p-4">
-            <h3 className="text-[12px] font-bold text-[#3B6FD4] mb-2">전략 추천</h3>
+            <h3 className="text-[12px] font-bold text-[#3B6FD4] mb-2">액션 플랜</h3>
             <ul className="flex flex-col gap-1.5">
               {ai.recommendations.map((r, i) => (
                 <li key={i} className="text-[12px] text-blue-700 flex gap-1.5">
-                  <span className="shrink-0 mt-0.5">·</span>{r}
+                  <span className="shrink-0 mt-0.5 font-bold">{i + 1}.</span>{r}
                 </li>
               ))}
             </ul>
