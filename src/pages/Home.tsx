@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuthStore } from '../store/authStore';
-
-const reports = [
-  { title: '당구장 · 서울 강남구', date: '2026-09-18', score: 72, status: '분석 완료', id: 1 },
-  { title: '헬스장 · 경기 수원시', date: '2026-09-10', score: 88, status: '분석 완료', id: 2 },
-  { title: '수영장 · 부산 해운대구', date: '2026-08-28', score: 61, status: '분석 완료', id: 3 },
-];
+import { getMe, type Me } from '../api/user';
+import { getMyAnalyses } from '../api/reports';
+import { getMyReports } from '../api/reports';
+import type { Analysis, Report } from '../types';
 
 export default function Home() {
   const loginWithToken = useAuthStore((s) => s.loginWithToken);
+  const [me, setMe] = useState<Me | null>(null);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -21,14 +22,26 @@ export default function Home() {
     }
   }, [loginWithToken]);
 
+  useEffect(() => {
+    getMe().then(setMe).catch(() => {});
+    getMyAnalyses().then(setAnalyses).catch(() => {});
+    getMyReports().then(setReports).catch(() => {});
+  }, []);
+
+  const items = analyses.map((a) => {
+    const report = reports.find((r) => r.analysisId === a.id);
+    return { analysis: a, report };
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      {/* Welcome band */}
       <div className="bg-[#1E2D4A] px-10 py-5 flex items-center gap-6">
         <div className="flex-1">
-          <p className="text-white text-lg font-bold">안녕하세요, 박준혁 님 👋</p>
+          <p className="text-white text-lg font-bold">
+            {me ? `안녕하세요, ${me.name} 님 👋` : '안녕하세요 👋'}
+          </p>
           <p className="text-[#8FA8CC] text-[13px] mt-1">
             공공데이터로 피트니스 창업 최적 입지를 찾아보세요. 발품 없이, 데이터로.
           </p>
@@ -56,44 +69,53 @@ export default function Home() {
       </div>
 
       <div className="flex-1 px-10 py-7 flex flex-col gap-6">
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200">
-          <button className="h-11 px-6 text-sm font-bold text-[#3B6FD4] border-b-[3px] border-[#3B6FD4]">
-            창업 분석
-          </button>
-          <button className="h-11 px-6 text-sm text-gray-400 hover:text-gray-700">
-            시설 관리
-          </button>
-        </div>
-
         <h2 className="text-base font-bold text-gray-900">최근 창업 분석 리포트</h2>
 
-        {/* Report cards */}
-        <div className="grid grid-cols-3 gap-4">
-          {reports.map((r) => (
-            <div key={r.id} className="bg-white border border-gray-200 p-5 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-900">{r.title}</span>
-                <span className="text-[11px] text-[#16A34A] bg-[#DCFCE7] px-2 py-0.5">
-                  {r.status}
+        {items.length === 0 ? (
+          <div className="bg-white border border-gray-200 p-10 flex flex-col items-center gap-3">
+            <p className="text-sm text-gray-500">아직 분석 내역이 없어요.</p>
+            <Link to="/analysis" className="text-sm text-[#3B6FD4] font-bold hover:underline">
+              첫 입지 분석 시작하기 →
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-4">
+            {items.map(({ analysis, report }) => (
+              <div key={analysis.id} className="bg-white border border-gray-200 p-5 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-gray-900 truncate">
+                    {analysis.category} · {analysis.address}
+                  </span>
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 shrink-0 ${report ? 'text-[#16A34A] bg-[#DCFCE7]' : 'text-gray-400 bg-gray-100'}`}>
+                    {report ? '분석 완료' : '처리 중'}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {analysis.createdAt.slice(0, 10)}
                 </span>
+                <div className="flex items-end gap-1.5">
+                  {report ? (
+                    <>
+                      <span className="text-[28px] font-bold text-[#3B6FD4]">{report.score}점</span>
+                      <span className="text-xs text-gray-400 mb-1.5">입지 점수</span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-gray-400">점수 산출 중...</span>
+                  )}
+                </div>
+                {report && (
+                  <Link
+                    to={`/reports/${report.id}`}
+                    className="block w-full h-9 border border-gray-200 flex items-center justify-center text-xs text-[#3B6FD4] hover:bg-gray-50 transition-colors"
+                  >
+                    상세 보기
+                  </Link>
+                )}
               </div>
-              <span className="text-xs text-gray-400">{r.date}</span>
-              <div className="flex items-end gap-1.5">
-                <span className="text-[28px] font-bold text-[#3B6FD4]">{r.score}점</span>
-                <span className="text-xs text-gray-400 mb-1.5">입지 점수</span>
-              </div>
-              <Link
-                to={`/reports/${r.id}`}
-                className="block w-full h-9 border border-gray-200 flex items-center justify-center text-xs text-[#3B6FD4] hover:bg-gray-50 transition-colors"
-              >
-                상세 보기
-              </Link>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* New analysis CTA */}
         <div className="bg-[#EFF6FF] border border-[#3B6FD4] rounded-lg px-7 py-6 flex items-center gap-6">
           <div className="flex-1">
             <p className="text-[15px] font-bold text-[#1E3A8A]">새 입지 분석 시작하기</p>
