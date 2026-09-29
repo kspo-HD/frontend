@@ -32,7 +32,7 @@ export interface Report {
   id: string;
   analysisId: string;
   score: number;
-  grade: 'A' | 'B' | 'C' | 'D' | 'E';
+  grade: 'S' | 'A' | 'B' | 'C' | 'D' | 'E';
   competitorCount: number;
   closureRate: number;
   publicRatio: number;

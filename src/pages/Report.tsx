@@ -20,13 +20,34 @@ interface ReportData {
   createdAt: string;
 }
 
+interface AiSummary {
+  summary?: string;
+  market_analysis?: string;
+  competition_analysis?: string;
+  budget_analysis?: string;
+  risks?: string[];
+  opportunities?: string[];
+  recommendations?: string[];
+  score_reasoning?: string;
+}
+
 const GRADE_COLOR: Record<string, string> = {
   S: 'bg-green-100 text-green-700',
   A: 'bg-blue-100 text-blue-700',
   B: 'bg-yellow-100 text-yellow-700',
   C: 'bg-orange-100 text-orange-700',
   D: 'bg-red-100 text-red-700',
+  E: 'bg-red-100 text-red-800',
 };
+
+function parseAi(raw: string | null): AiSummary | null {
+  if (!raw) return null;
+  try {
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return null;
+  }
+}
 
 export default function Report() {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +90,7 @@ export default function Report() {
   if (!report) return null;
 
   const radiusLabel = report.radiusM >= 1000 ? `${report.radiusM / 1000}km` : `${report.radiusM}m`;
+  const ai = parseAi(report.summaryJson);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -119,7 +141,7 @@ export default function Report() {
 
         {/* AI 분석 요약 */}
         <div className="bg-white border border-gray-200 p-7">
-          <h2 className="text-base font-bold text-gray-900 mb-4">AI 입지 분석 요약</h2>
+          <h2 className="text-base font-bold text-gray-900 mb-5">AI 입지 분석 리포트</h2>
           {report.locked ? (
             <div className="flex flex-col items-center gap-4 py-10">
               <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,14 +159,14 @@ export default function Report() {
                   </button>
               }
             </div>
+          ) : ai ? (
+            <AiReport ai={ai} />
           ) : (
-            <div className="text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {typeof report.summaryJson === 'string' ? report.summaryJson : JSON.stringify(report.summaryJson, null, 2)}
-            </div>
+            <p className="text-sm text-gray-400 text-center py-6">분석 데이터를 불러올 수 없습니다.</p>
           )}
         </div>
 
-        {/* 경쟁 시설 미리보기 */}
+        {/* 경쟁 시설 */}
         <div className="bg-white border border-gray-200 p-7">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-gray-900">인근 경쟁 시설</h2>
@@ -158,6 +180,85 @@ export default function Report() {
             <CompetitorPreview reportId={id!} />
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AiReport({ ai }: { ai: AiSummary }) {
+  return (
+    <div className="flex flex-col gap-6">
+      {ai.summary && (
+        <div>
+          <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">종합 요약</h3>
+          <p className="text-[14px] text-gray-800 leading-relaxed">{ai.summary}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-6">
+        {ai.market_analysis && (
+          <div>
+            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">시장 분석</h3>
+            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.market_analysis}</p>
+          </div>
+        )}
+        {ai.competition_analysis && (
+          <div>
+            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">경쟁 분석</h3>
+            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.competition_analysis}</p>
+          </div>
+        )}
+        {ai.budget_analysis && (
+          <div>
+            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">예산 분석</h3>
+            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.budget_analysis}</p>
+          </div>
+        )}
+        {ai.score_reasoning && (
+          <div>
+            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">점수 근거</h3>
+            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.score_reasoning}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        {ai.risks && ai.risks.length > 0 && (
+          <div className="bg-red-50 border border-red-100 rounded p-4">
+            <h3 className="text-[12px] font-bold text-red-600 mb-2">위험 요인</h3>
+            <ul className="flex flex-col gap-1.5">
+              {ai.risks.map((r, i) => (
+                <li key={i} className="text-[12px] text-red-700 flex gap-1.5">
+                  <span className="shrink-0 mt-0.5">·</span>{r}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {ai.opportunities && ai.opportunities.length > 0 && (
+          <div className="bg-green-50 border border-green-100 rounded p-4">
+            <h3 className="text-[12px] font-bold text-green-600 mb-2">기회 요인</h3>
+            <ul className="flex flex-col gap-1.5">
+              {ai.opportunities.map((o, i) => (
+                <li key={i} className="text-[12px] text-green-700 flex gap-1.5">
+                  <span className="shrink-0 mt-0.5">·</span>{o}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {ai.recommendations && ai.recommendations.length > 0 && (
+          <div className="bg-blue-50 border border-blue-100 rounded p-4">
+            <h3 className="text-[12px] font-bold text-[#3B6FD4] mb-2">전략 추천</h3>
+            <ul className="flex flex-col gap-1.5">
+              {ai.recommendations.map((r, i) => (
+                <li key={i} className="text-[12px] text-blue-700 flex gap-1.5">
+                  <span className="shrink-0 mt-0.5">·</span>{r}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -180,6 +281,7 @@ function CompetitorPreview({ reportId }: { reportId: string }) {
         <tr className="border-b border-gray-100">
           <th className="text-left py-2 text-xs text-gray-400 font-medium">시설명</th>
           <th className="text-left py-2 text-xs text-gray-400 font-medium">상태</th>
+          <th className="text-left py-2 text-xs text-gray-400 font-medium">규모</th>
           <th className="text-right py-2 text-xs text-gray-400 font-medium">거리</th>
         </tr>
       </thead>
@@ -192,6 +294,7 @@ function CompetitorPreview({ reportId }: { reportId: string }) {
                 {c.status}
               </span>
             </td>
+            <td className="py-2 text-gray-500">{c.areaM2 ? `${c.areaM2}㎡` : '–'}</td>
             <td className="py-2 text-right text-gray-500">{c.distanceM}m</td>
           </tr>
         ))}
