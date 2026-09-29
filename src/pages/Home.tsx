@@ -1,17 +1,31 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuthStore } from '../store/authStore';
-import { getMe, type Me } from '../api/user';
-import { getMyAnalyses } from '../api/reports';
-import { getMyReports } from '../api/reports';
+import { getMe, withdraw, type Me } from '../api/user';
+import { getMyAnalyses, getMyReports } from '../api/reports';
 import type { Analysis, Report } from '../types';
 
 export default function Home() {
   const loginWithToken = useAuthStore((s) => s.loginWithToken);
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
   const [me, setMe] = useState<Me | null>(null);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
+  const [withdrawing, setWithdrawing] = useState(false);
+
+  const handleWithdraw = async () => {
+    if (!window.confirm('정말 탈퇴하시겠어요? 모든 분석 데이터가 삭제됩니다.')) return;
+    setWithdrawing(true);
+    try {
+      await withdraw();
+      logout();
+      navigate('/');
+    } finally {
+      setWithdrawing(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -132,6 +146,16 @@ export default function Home() {
             </svg>
             분석 시작
           </Link>
+        </div>
+
+        <div className="flex justify-end pt-2 pb-4">
+          <button
+            onClick={handleWithdraw}
+            disabled={withdrawing}
+            className="text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
+          >
+            {withdrawing ? '처리 중...' : '회원 탈퇴'}
+          </button>
         </div>
       </div>
     </div>

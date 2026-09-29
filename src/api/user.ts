@@ -13,3 +13,6 @@ export interface Me {
 
 export const getMe = () =>
   client.get<Me>('/api/v1/users/me').then(r => r.data);
+
+export const withdraw = () =>
+  client.delete('/api/v1/users/me').then(r => r.data);
