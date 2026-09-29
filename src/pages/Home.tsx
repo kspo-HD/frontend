@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { useAuthStore } from '../store/authStore';
 
 const reports = [
   { title: '당구장 · 서울 강남구', date: '2026-09-18', score: 72, status: '분석 완료', id: 1 },
@@ -8,6 +10,17 @@ const reports = [
 ];
 
 export default function Home() {
+  const loginWithToken = useAuthStore((s) => s.loginWithToken);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('access_token');
+    if (token) {
+      loginWithToken(token);
+      window.history.replaceState({}, '', '/home');
+    }
+  }, [loginWithToken]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />

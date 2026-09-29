@@ -1,12 +1,31 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 export default function Onboarding() {
   const [nickname, setNickname] = useState('');
   const [interest, setInterest] = useState('');
   const [region, setRegion] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const loginWithToken = useAuthStore((s) => s.loginWithToken);
 
-  const handleSubmit = () => {
-    // TODO: POST /api/v1/auth/signup { nickname }
+  const handleSubmit = async () => {
+    if (!nickname.trim()) return;
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/v1/auth/signup`,
+        { nickname },
+        { withCredentials: true }
+      );
+      const token = res.headers['authorization']?.replace('Bearer ', '');
+      if (token) loginWithToken(token);
+      navigate('/home');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,10 +74,10 @@ export default function Onboarding() {
 
         <button
           onClick={handleSubmit}
-          disabled={!nickname.trim()}
+          disabled={!nickname.trim() || loading}
           className="w-full h-12 bg-[#3B6FD4] text-white text-[15px] font-bold hover:bg-[#2e5ec0] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          시작하기
+          {loading ? '처리 중...' : '시작하기'}
         </button>
       </div>
     </div>
