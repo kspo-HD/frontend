@@ -7,6 +7,7 @@ import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Login';
 import Onboarding from '../pages/Onboarding';
 import Home from '../pages/Home';
+import OAuthCallback from '../pages/OAuthCallback';
 import Analysis from '../pages/Analysis';
 import Report from '../pages/Report';
 import Payment from '../pages/Payment';
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
 
   // 소셜 로그인 후 미가입자 온보딩 (signup token 쿠키 필요)
   { path: '/onboarding', element: <Onboarding /> },
+  { path: '/auth/callback', element: <OAuthCallback /> },
 
   // 창업자 포털 (인증 필요)
   { path: '/home', element: <PrivateRoute><Home /></PrivateRoute> },

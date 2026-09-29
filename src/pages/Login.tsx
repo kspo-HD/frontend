@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 import Navbar from '../components/Navbar';
 
 export default function Login() {
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoggedIn) navigate('/home', { replace: true });
+  }, [isLoggedIn, navigate]);
+
   const handleKakao = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}/api/v1/auth/oauth2/kakao/authorize`;
   };
