@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import client from '../api/client';
+import { createAnalysis } from '../api/reports';
 
 declare global { interface Window { kakao: any; } }
 
@@ -82,8 +82,8 @@ export default function Analysis() {
     try {
       const address = `${sido} ${sigungu}`;
       const { lat, lng } = await geocode(address);
-      const res = await client.post('/api/v1/analyses', { category, lat, lng, radiusM: radius, address });
-      navigate(`/reports/${res.data.reportId}`);
+      const res = await createAnalysis({ category, lat, lng, radiusM: radius, address });
+      navigate(`/reports/${res.reportId}`);
     } catch (e: any) {
       setError(e.message ?? '분석 중 오류가 발생했습니다.');
     } finally {
