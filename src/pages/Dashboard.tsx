@@ -4,8 +4,10 @@ import client from '../api/client';
 
 interface Stats {
   total: number;
+  active: number;
   categories: { category: string; count: number }[];
   regions: { sido: string; count: number }[];
+  types: { type: string; count: number }[];
 }
 
 export default function Dashboard() {
@@ -19,6 +21,8 @@ export default function Dashboard() {
 
   const maxCategoryCount = stats ? Math.max(...stats.categories.map(c => Number(c.count))) : 1;
   const topRegions = stats?.regions.slice(0, 10) ?? [];
+  const topTypes = stats?.types.slice(0, 15) ?? [];
+  const maxTypeCount = topTypes.length > 0 ? Math.max(...topTypes.map(t => Number(t.count))) : 1;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -36,13 +40,34 @@ export default function Dashboard() {
             { label: '전체 시설 수', value: stats ? stats.total.toLocaleString() + '개' : '–' },
             { label: '업종 수', value: stats ? stats.categories.length + '종' : '–' },
             { label: '등록 시도', value: stats ? stats.regions.length + '개' : '–' },
-            { label: '정상운영 비율', value: '–' },
+            { label: '정상운영 비율', value: stats ? ((stats.active / stats.total) * 100).toFixed(1) + '%' : '–' },
           ].map((m) => (
             <div key={m.label} className="bg-white border border-gray-200 p-5">
               <p className="text-xs text-gray-400">{m.label}</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{m.value}</p>
             </div>
           ))}
+        </div>
+
+        {/* 세부 유형별 분포 */}
+        <div className="bg-white border border-gray-200 p-7">
+          <h2 className="text-base font-bold text-gray-900 mb-5">세부 유형별 시설 수 (상위 15개)</h2>
+          {stats ? (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+              {topTypes.map((t) => (
+                <div key={t.type} className="flex items-center gap-3">
+                  <span className="text-[13px] text-gray-600 w-24 shrink-0">{t.type}</span>
+                  <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#6B9FE4] rounded-full"
+                      style={{ width: `${(Number(t.count) / maxTypeCount) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-[13px] text-gray-500 w-16 text-right">{Number(t.count).toLocaleString()}개</span>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-sm text-gray-400">불러오는 중...</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-6">
