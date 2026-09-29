@@ -2,7 +2,7 @@ import client from './client';
 import type { Analysis, Report, Payment } from '../types';
 
 export const createAnalysis = (body: Omit<Analysis, 'id' | 'createdAt'>) =>
-  client.post<Analysis>('/api/v1/analyses', body).then(r => r.data);
+  client.post<Analysis>('/api/v1/analyses', body, { timeout: 60000 }).then(r => r.data);
 
 export const getMyAnalyses = () =>
   client.get<Analysis[]>('/api/v1/analyses').then(r => r.data);
