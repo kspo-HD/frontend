@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuthStore } from '../store/authStore';
 import { getMe, withdraw, type Me } from '../api/user';
@@ -10,6 +10,7 @@ export default function Home() {
   const loginWithToken = useAuthStore((s) => s.loginWithToken);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
+  const location = useLocation();
   const [me, setMe] = useState<Me | null>(null);
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
@@ -28,13 +29,13 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const token = params.get('access_token');
     if (token) {
       loginWithToken(token);
       window.history.replaceState({}, '', '/home');
     }
-  }, [loginWithToken]);
+  }, [loginWithToken, location.search]);
 
   useEffect(() => {
     getMe().then(setMe).catch(() => {});
@@ -148,11 +149,28 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="flex justify-end pt-2 pb-4">
+        <div className="flex items-center justify-between pt-2 pb-4">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/payment-history"
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-4 py-2 text-[13px] hover:bg-gray-50 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              결제 내역
+            </Link>
+            <Link
+              to="/terms"
+              className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-4 py-2 text-[13px] hover:bg-gray-50 transition-colors"
+            >
+              이용약관
+            </Link>
+          </div>
           <button
             onClick={handleWithdraw}
             disabled={withdrawing}
-            className="text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
+            className="flex items-center gap-1.5 border border-red-200 text-red-500 px-4 py-2 text-[13px] font-medium hover:bg-red-50 transition-colors disabled:opacity-40"
           >
             {withdrawing ? '처리 중...' : '회원 탈퇴'}
           </button>
