@@ -1,96 +1,91 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import client from '../api/client';
 
-const infoRows = [
-  { label: '위도/경도', value: '37.4979° N, 127.0276° E' },
-  { label: '공공시설 코드', value: '해당 없음 (사설)' },
-  { label: '시설 규모', value: '소규모 (50㎡ 미만 추정)' },
-  { label: '데이터 최종 확인', value: '2026-09-18 (공공데이터 포털)' },
-];
-
-const nearbyFacilities = [
-  { name: '역삼 스포츠센터', type: '복합 (공공)', distance: '340m' },
-  { name: '선릉 큐스포츠', type: '당구장', distance: '480m' },
-  { name: '삼성동 포켓볼', type: '당구장', distance: '620m' },
-];
+interface Competitor {
+  facilityId: number;
+  name: string;
+  category: string;
+  status: string;
+  lat: number;
+  lng: number;
+  roadAddr: string;
+  areaM2: number | null;
+  floor: number | null;
+  isPublic: boolean;
+  openWeekday: string | null;
+  distanceM: number;
+}
 
 export default function Competitors() {
+  const { id: reportId } = useParams<{ id: string }>();
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!reportId) return;
+    client.get(`/api/v1/reports/${reportId}/competitors`)
+      .then(r => setCompetitors(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [reportId]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-200 px-16 py-3 flex items-center gap-1.5 text-xs">
-        <Link to="/map" className="text-[#3B6FD4] hover:underline">전국 운동시설 지도</Link>
-        <span className="text-gray-400">›</span>
-        <span className="text-[#3B6FD4] cursor-pointer hover:underline">강남구</span>
-        <span className="text-gray-400">›</span>
-        <span className="text-gray-900">강남 당구클럽</span>
+      <div className="bg-white border-b border-gray-200 px-16 py-6">
+        <div className="flex items-center gap-2 text-[13px] text-gray-400 mb-3">
+          <Link to="/home" className="hover:text-gray-600">마이페이지</Link>
+          <span>›</span>
+          <Link to={`/reports/${reportId}`} className="hover:text-gray-600">리포트</Link>
+          <span>›</span>
+          <span className="text-gray-700">경쟁 시설 목록</span>
+        </div>
+        <h1 className="text-xl font-bold text-gray-900">인근 경쟁 시설</h1>
+        <p className="text-sm text-gray-400 mt-1">분석 반경 내 동일 업종 시설 목록입니다.</p>
       </div>
 
-      <div className="flex flex-1">
-        {/* Left col */}
-        <div className="w-[640px] shrink-0 bg-gray-50 flex flex-col gap-6 px-10 py-8">
-          {/* Facility header */}
-          <div className="bg-white border border-gray-200 flex flex-col gap-3 p-6">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-[#3B6FD4] bg-[#EEF2FF] px-2.5 py-1">당구장</span>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1">사설</span>
-            </div>
-            <h1 className="text-[22px] font-bold text-gray-900">강남 당구클럽</h1>
-            <p className="text-[13px] text-gray-500">서울특별시 강남구 역삼동 123-45</p>
+      <div className="flex-1 px-16 py-8">
+        {loading ? (
+          <p className="text-gray-400 text-sm">불러오는 중...</p>
+        ) : competitors.length === 0 ? (
+          <div className="bg-white border border-gray-200 p-12 text-center">
+            <p className="text-sm text-gray-500">반경 내 경쟁 시설이 없습니다.</p>
           </div>
-
-          {/* Info table */}
-          <div className="bg-white border border-gray-200 flex flex-col">
-            {infoRows.map((row, i) => (
-              <div key={row.label} className={`flex items-center h-11 ${i > 0 ? 'border-t border-gray-200' : ''}`}>
-                <div className="w-[180px] shrink-0 h-11 bg-gray-50 px-4 flex items-center">
-                  <span className="text-xs font-bold text-gray-400">{row.label}</span>
-                </div>
-                <div className="flex-1 h-11 px-4 flex items-center">
-                  <span className="text-xs text-gray-900">{row.value}</span>
-                </div>
-              </div>
-            ))}
+        ) : (
+          <div className="bg-white border border-gray-200">
+            <table className="w-full text-[13px]">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">시설명</th>
+                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">업종</th>
+                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">상태</th>
+                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">주소</th>
+                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">면적</th>
+                  <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium">거리</th>
+                </tr>
+              </thead>
+              <tbody>
+                {competitors.map((c) => (
+                  <tr key={c.facilityId} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-5 py-3 font-medium text-gray-900">{c.name}</td>
+                    <td className="px-5 py-3 text-gray-600">{c.category}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-[11px] px-2 py-0.5 rounded ${c.status === '정상운영' ? 'text-green-600 bg-green-50' : 'text-gray-400 bg-gray-100'}`}>
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-gray-500 max-w-[200px] truncate">{c.roadAddr || '-'}</td>
+                    <td className="px-5 py-3 text-gray-500">{c.areaM2 ? `${c.areaM2.toLocaleString()}㎡` : '-'}</td>
+                    <td className="px-5 py-3 text-right text-gray-500">{c.distanceM}m</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          {/* CTA button */}
-          <Link
-            to="/analysis"
-            className="w-full h-12 bg-[#3B6FD4] text-white flex items-center justify-center gap-2 text-sm font-bold hover:bg-[#2e5ec0] transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            창업 분석에 이 시설 포함
-          </Link>
-        </div>
-
-        {/* Right col */}
-        <div className="flex-1 bg-white border-l border-gray-200 flex flex-col gap-6 p-8">
-          <h2 className="text-sm font-bold text-gray-900">위치 지도</h2>
-
-          {/* Map placeholder */}
-          <div className="h-[250px] bg-[#E8F0F8] flex items-center justify-center relative">
-            <div className="absolute w-5 h-5 rounded-full bg-[#3B6FD4]" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }} />
-            <span className="text-[13px] text-[#5A7A9A] mt-20">지도 위치 표시</span>
-          </div>
-
-          <h3 className="text-sm font-bold text-gray-900">인근 경쟁 시설 (500m 이내)</h3>
-
-          <div className="flex flex-col gap-2">
-            {nearbyFacilities.map((f) => (
-              <div key={f.name} className="h-[52px] bg-gray-50 border border-gray-200 flex items-center gap-3 px-4">
-                <div className="flex-1 flex flex-col gap-0.5">
-                  <span className="text-[13px] font-bold text-gray-900">{f.name}</span>
-                  <span className="text-[11px] text-gray-400">{f.type}</span>
-                </div>
-                <span className="text-xs text-gray-400 shrink-0">{f.distance}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

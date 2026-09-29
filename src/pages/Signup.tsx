@@ -80,7 +80,7 @@ export default function Signup() {
 
           {/* 추가 정보 */}
           <div className="bg-gray-50 p-4 flex flex-col gap-4">
-            <span className="text-xs font-bold text-gray-400">추가 정보 (사업자 선택 시)</span>
+            <span className="text-xs font-bold text-gray-400">추가 정보 (선택)</span>
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-bold text-gray-900">관심 업종</label>
               <input
