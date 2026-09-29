@@ -26,12 +26,9 @@ export default function Navbar() {
             로그아웃
           </button>
         ) : (
-          <>
-            <Link to="/login" className="text-sm text-gray-600 hover:text-gray-900">로그인</Link>
-            <Link to="/login" className="bg-[#3B6FD4] text-white text-sm px-4 py-1.5 rounded-md hover:bg-[#2e5ec0] transition-colors">
-              가입하기
-            </Link>
-          </>
+          <Link to="/login" className="bg-[#3B6FD4] text-white text-sm px-4 py-1.5 rounded-md hover:bg-[#2e5ec0] transition-colors">
+            시작하기
+          </Link>
         )}
       </div>
     </nav>

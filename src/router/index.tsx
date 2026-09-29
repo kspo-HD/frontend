@@ -5,7 +5,7 @@ import Landing from '../pages/Landing';
 import MapPage from '../pages/Map';
 import Dashboard from '../pages/Dashboard';
 import Login from '../pages/Login';
-import Signup from '../pages/Signup';
+import Onboarding from '../pages/Onboarding';
 import Home from '../pages/Home';
 import Analysis from '../pages/Analysis';
 import Report from '../pages/Report';
@@ -23,7 +23,9 @@ export const router = createBrowserRouter([
   { path: '/map', element: <MapPage /> },
   { path: '/dashboard', element: <Dashboard /> },
   { path: '/login', element: <Login /> },
-  { path: '/signup', element: <Signup /> },
+
+  // 소셜 로그인 후 미가입자 온보딩 (signup token 쿠키 필요)
+  { path: '/onboarding', element: <Onboarding /> },
 
   // 창업자 포털 (인증 필요)
   { path: '/home', element: <PrivateRoute><Home /></PrivateRoute> },

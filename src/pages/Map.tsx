@@ -8,9 +8,9 @@ const publicTypes = ['구분 없음', '공공', '사설'];
 const gradColors = ['#4575B4', '#74ADD1', '#ABD9E9', '#FEE090', '#F46D43', '#D73027'];
 
 export default function Map() {
-  const [facilityType, setFacilityType] = useState(facilityTypes[0]);
-  const [region, setRegion] = useState(regions[0]);
-  const [publicType, setPublicType] = useState(publicTypes[0]);
+  const [facilityType] = useState(facilityTypes[0]);
+  const [region] = useState(regions[0]);
+  const [publicType] = useState(publicTypes[0]);
   const [viewMode, setViewMode] = useState<'heatmap' | 'marker'>('heatmap');
 
   return (

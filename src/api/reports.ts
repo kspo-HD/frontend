@@ -1,5 +1,5 @@
 import client from './client';
-import type { Analysis, Report, Payment, Credit } from '../types';
+import type { Analysis, Report, Payment } from '../types';
 
 export const createAnalysis = (body: Omit<Analysis, 'id' | 'createdAt'>) =>
   client.post<Analysis>('/api/v1/analyses', body).then(r => r.data);
