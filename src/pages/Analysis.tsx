@@ -34,6 +34,15 @@ const SIDO_SIGUNGU: Record<string, string[]> = {
 
 const SIDOS = Object.keys(SIDO_SIGUNGU);
 
+const BUDGET_OPTIONS = [
+  { label: '3천만원 미만',   sub: 'PT샵·소규모 도장',  value: '3,000만원 미만' },
+  { label: '3천~8천만원',    sub: '소형 헬스장·도장',   value: '3,000만원~8,000만원' },
+  { label: '8천만~1.5억',   sub: '중소형 헬스장',      value: '8,000만원~1억5,000만원' },
+  { label: '1.5억~3억',     sub: '중형 헬스장',        value: '1억5,000만원~3억원' },
+  { label: '3억~6억',       sub: '대형 헬스장',        value: '3억원~6억원' },
+  { label: '6억 이상',      sub: '특대형·수영장',       value: '6억원 이상' },
+];
+
 const RADIUS_OPTIONS = [
   { label: '500m', value: 500 },
   { label: '1km', value: 1000 },
@@ -66,6 +75,7 @@ export default function Analysis() {
   const [sidoOpen, setSidoOpen] = useState(false);
   const [sigungu, setSigungu] = useState('');
   const [sigunguOpen, setSigunguOpen] = useState(false);
+  const [budget, setBudget] = useState('');
   const [radius, setRadius] = useState(1000);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -82,7 +92,7 @@ export default function Analysis() {
     try {
       const address = `${sido} ${sigungu}`;
       const { lat, lng } = await geocode(address);
-      const res = await createAnalysis({ category, lat, lng, radiusM: radius, address });
+      const res = await createAnalysis({ category, lat, lng, radiusM: radius, address, budgetRange: budget || undefined });
       navigate(`/reports/${res.reportId}`);
     } catch (e: any) {
       setError(e.message ?? '분석 중 오류가 발생했습니다.');
@@ -178,6 +188,29 @@ export default function Analysis() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* 창업 예산 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-bold text-gray-900">
+              창업 예산 <span className="text-[11px] font-normal text-gray-400">(선택)</span>
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {BUDGET_OPTIONS.map((b) => (
+                <button
+                  key={b.value}
+                  onClick={() => setBudget(budget === b.value ? '' : b.value)}
+                  className={`py-2.5 px-1 rounded border text-center transition-colors ${
+                    budget === b.value
+                      ? 'bg-[#EFF6FF] border-[#3B6FD4]'
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className={`text-[12px] font-bold leading-tight ${budget === b.value ? 'text-[#1E3A8A]' : 'text-gray-800'}`}>{b.label}</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">{b.sub}</div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 반경 */}

@@ -25,6 +25,7 @@ export interface Analysis {
   lng: number;
   address: string;
   radiusM: number;
+  budgetRange?: string;
   createdAt: string;
 }
 
