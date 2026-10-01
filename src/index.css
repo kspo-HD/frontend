@@ -38,7 +38,7 @@
     page-break-inside: avoid;
   }
 
-  /* Key Metrics: 4열 → 2×2 */
+  /* Key Metrics: 4~5열 → 2열 다중행 */
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }

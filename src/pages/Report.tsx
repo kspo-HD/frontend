@@ -22,6 +22,11 @@ interface ReportData {
   walkingRate?: number;
   obesityRate?: number;
   healthRegion?: string;
+  rentPerSqm?: number;
+  rentNationalAvg?: number;
+  rentVsAvgPct?: number;
+  rentQuarter?: string;
+  rentSido?: string;
 }
 
 interface AiSummary {
@@ -157,7 +162,7 @@ export default function Report() {
           </div>
 
           {/* Key Metrics */}
-          <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${report.rentVsAvgPct != null ? 5 : 4}, 1fr)`, gap: 16 }}>
             {/* 입지 점수 */}
             <div className="glass-card" style={{ padding: 20 }}>
               <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>입지 점수</p>
@@ -215,7 +220,7 @@ export default function Report() {
                     {Number(report.obesityRate).toFixed(1)}%
                   </p>
                   <p style={{ fontSize: 11, color: '#9CA3AF' }}>
-                    {report.healthRegion} · {report.obesityRate > 30 ? '잠재 수요 높음' : '평균 수준'}
+                    {report.healthRegion} · {Number(report.obesityRate) > 30 ? '잠재 수요 높음' : '평균 수준'}
                   </p>
                 </>
               ) : (
@@ -228,6 +233,27 @@ export default function Report() {
                 </>
               )}
             </div>
+
+            {/* 임대료 지표 */}
+            {report.rentVsAvgPct != null && (
+              <div className="glass-card" style={{ padding: 20 }}>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>임대료 수준</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+                  <p style={{
+                    fontSize: 28, fontWeight: 800, letterSpacing: '-1px',
+                    color: report.rentVsAvgPct > 30 ? '#DC2626' : report.rentVsAvgPct > 0 ? '#D97706' : '#16A34A',
+                  }}>
+                    {report.rentVsAvgPct > 0 ? '+' : ''}{report.rentVsAvgPct}%
+                  </p>
+                </div>
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                  전국 평균 대비 · {report.rentSido} {Number(report.rentPerSqm).toFixed(1)}천원/㎡
+                </p>
+                <p style={{ fontSize: 10, color: '#D1D5DB', marginTop: 3 }}>
+                  전국 평균 {Number(report.rentNationalAvg).toFixed(1)}천원/㎡ · {report.rentQuarter}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* AI Report */}
