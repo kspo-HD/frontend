@@ -6,6 +6,7 @@ interface CreditState {
   setCredits: (n: number) => void;
   fetchCredits: () => Promise<void>;
   decrement: () => void;
+  increment: () => void;
 }
 
 export const useCreditStore = create<CreditState>((set, get) => ({
@@ -23,5 +24,10 @@ export const useCreditStore = create<CreditState>((set, get) => ({
   decrement: () => {
     const cur = get().credits;
     if (cur !== null) set({ credits: Math.max(0, cur - 1) });
+  },
+
+  increment: () => {
+    const cur = get().credits;
+    if (cur !== null) set({ credits: cur + 1 });
   },
 }));

@@ -152,7 +152,7 @@ function parseAi(raw: string | null): AiSummary | null {
 export default function Report() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { credits, decrement } = useCreditStore();
+  const { credits, decrement, increment } = useCreditStore();
   const [report, setReport] = useState<ReportData | null>(null);
   const [unlocking, setUnlocking] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -171,11 +171,12 @@ export default function Report() {
     if (!id) return;
     setUnlocking(true);
     setUnlockError('');
+    decrement();
     try {
       const res = await client.post(`/api/v1/reports/${id}/unlock`);
       setReport(prev => prev ? { ...prev, isPaid: true, locked: false, summaryJson: res.data.summaryJson } : prev);
-      decrement();
     } catch (e: any) {
+      increment();
       setUnlockError(e.response?.data?.message ?? '잠금 해제에 실패했습니다.');
     } finally {
       setUnlocking(false);
