@@ -14,28 +14,57 @@
   /* 인쇄 전용 헤더/푸터 표시 */
   .print-only { display: block !important; }
 
-  /* 레이아웃 리셋 */
-  body, .app-shell, .fm-main { background: #fff !important; }
-  .app-shell { display: block !important; }
-  .fm-main {
-    padding: 0 !important;
+  /* ── 핵심: 높이/오버플로 제약 전부 해제 ── */
+  html, body {
+    height: auto !important;
     overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .app-shell {
+    display: block !important;
+    height: auto !important;
+    min-height: unset !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    background: #fff !important;
+  }
+
+  .fm-main {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: unset !important;
+    overflow: visible !important;
+    padding: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    flex: none !important;
+    width: 100% !important;
   }
 
+  /* 리포트 콘텐츠 */
   #report-print {
     padding: 0 !important;
-    gap: 14px !important;
+    gap: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
-  /* 유리 카드 테두리만, 페이지 분리 방지 */
+  /* 유리 카드 — 작은 카드는 분리 방지, 큰 카드(AI)는 허용 */
   .glass-card {
     box-shadow: none !important;
     border: 1px solid #E5E7EB !important;
     background: #fff !important;
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* AI 분석 카드는 길어서 페이지 넘김 허용 */
+  .glass-card:has(.ai-2col),
+  .glass-card:has(.ai-3col) {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
 
   /* Key Metrics: 4~5열 → 2열 다중행 */
