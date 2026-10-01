@@ -1,54 +1,45 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import client from '../api/client';
 
-interface UsageItem {
-  usedAt: string;
-  reportId?: string;
-  score?: number;
-  grade?: string;
-  category?: string;
-  address?: string;
-  radiusM?: number;
-}
-
-interface PaymentItem {
-  id: string;
-  bundleType: number;
-  totalCredits: number;
-  amount: number;
-  status: string;
-  createdAt: string;
-}
-
-const GRADE_COLOR: Record<string, { bg: string; color: string }> = {
-  S: { bg: '#E1F8E8', color: '#16A34A' },
-  A: { bg: '#EEF2FF', color: '#2552FE' },
-  B: { bg: '#FFFBEB', color: '#D97706' },
-  C: { bg: '#FFF7ED', color: '#EA580C' },
-  D: { bg: '#FEF2F2', color: '#DC2626' },
-  E: { bg: '#FEF2F2', color: '#991B1B' },
-};
-
-const RADIUS_LABEL: Record<number, string> = { 500: '500m', 1000: '1km', 3000: '3km', 5000: '5km' };
+const DATASETS = [
+  {
+    name: '전국 스포츠시설업 신고 현황',
+    org: '국민체육진흥공단 (KSPO)',
+    description: '헬스장·무도장·수영장 등 민간 스포츠시설의 등록·폐업 현황. 입지 분석 경쟁 강도·폐업률 산출에 사용.',
+    count: '41,000+건',
+    category: '체력단련장업 · 체육도장업 · 체육교습업',
+    color: '#2552FE',
+    bg: '#EEF2FF',
+  },
+  {
+    name: '전국 공공체육시설 개방 정보',
+    org: '문화체육관광부 · 각 지자체',
+    description: '학교·공공체육관 등 공공개방 스포츠시설 위치 및 운영 정보. 공공시설 경쟁 압력 지표 산출에 사용.',
+    count: '10,000+건',
+    category: '공공개방시설',
+    color: '#059669',
+    bg: '#E1F8E8',
+  },
+  {
+    name: '행정구역별 인구 통계',
+    org: '통계청 (KOSIS)',
+    description: '시도·시군구 단위 인구 데이터. 입지 점수 산출 시 배후 수요 추정 기반 데이터.',
+    count: '255개 행정구역',
+    category: '시도 · 시군구',
+    color: '#7C3AED',
+    bg: '#F3E8FF',
+  },
+  {
+    name: '전국 지하철역 위치 정보',
+    org: '국토교통부 · 한국철도공사 (KORAIL)',
+    description: '전국 지하철·도시철도 역사 위치(위경도). 입지 분석 유동인구·접근성 지표에 활용.',
+    count: '1,108개 역사',
+    category: '수도권 · 광역시 도시철도',
+    color: '#0891B2',
+    bg: '#E0F2FE',
+  },
+];
 
 export default function DataUsage() {
-  const [tab, setTab] = useState<'usage' | 'payment'>('usage');
-  const [usage, setUsage] = useState<UsageItem[]>([]);
-  const [payments, setPayments] = useState<PaymentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.all([
-      client.get('/api/v1/credits/usage').then(r => r.data ?? []),
-      client.get('/api/v1/payments').then(r => r.data ?? []),
-    ]).then(([u, p]) => {
-      setUsage(u);
-      setPayments(p);
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, []);
-
   return (
     <div className="app-shell">
       <Sidebar />
@@ -56,96 +47,51 @@ export default function DataUsage() {
         <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>사용 데이터</h1>
-            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>크레딧 사용 내역과 결제 내역을 확인하세요.</p>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>
+              FitMap 입지 분석에 활용된 공공데이터 출처 목록입니다.
+            </p>
           </div>
 
-          {/* 탭 */}
-          <div style={{ display: 'flex', gap: 4, background: '#F3F4F6', borderRadius: 12, padding: 4, width: 'fit-content' }}>
-            {([['usage', '크레딧 사용'], ['payment', '결제 내역']] as const).map(([key, label]) => (
-              <button key={key} onClick={() => setTab(key)}
-                style={{ padding: '8px 20px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: tab === key ? 700 : 400, color: tab === key ? '#2552FE' : '#6B7280', background: tab === key ? '#fff' : 'transparent', cursor: 'pointer', transition: 'all 0.15s', boxShadow: tab === key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
-                {label}
-              </button>
+          {/* 요약 배너 */}
+          <div style={{ background: '#EEF2FF', border: '1.5px solid #C7D2FE', borderRadius: 16, padding: '18px 24px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            {[
+              { label: '전체 시설', value: '51,334개' },
+              { label: '행정구역', value: '255개' },
+              { label: '지하철역', value: '1,108개' },
+              { label: '데이터 출처', value: '4종' },
+            ].map(m => (
+              <div key={m.label} style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 20, fontWeight: 800, color: '#1E3A8A', letterSpacing: '-0.5px' }}>{m.value}</p>
+                <p style={{ fontSize: 12, color: '#4B5563', marginTop: 2 }}>{m.label}</p>
+              </div>
             ))}
           </div>
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF', fontSize: 13 }}>불러오는 중...</div>
-          ) : tab === 'usage' ? (
-            usage.length === 0 ? (
-              <div className="glass-card" style={{ padding: 48, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <p style={{ fontSize: 13, color: '#9CA3AF' }}>크레딧 사용 내역이 없어요.</p>
-                <Link to="/analysis" style={{ fontSize: 13, color: '#2552FE', fontWeight: 600 }}>첫 입지 분석 시작하기 →</Link>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {usage.map((item, i) => {
-                  const g = item.grade && GRADE_COLOR[item.grade];
-                  return (
-                    <div key={i} className="glass-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2552FE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                        </svg>
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{item.category ?? '–'}</span>
-                          {item.radiusM && <span style={{ fontSize: 11, color: '#9CA3AF' }}>반경 {RADIUS_LABEL[item.radiusM] ?? `${item.radiusM}m`}</span>}
-                        </div>
-                        <p style={{ fontSize: 12, color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.address ?? '–'}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{item.usedAt?.slice(0, 10)}</p>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-                        {item.score != null && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 20, fontWeight: 800, color: '#2552FE' }}>{item.score}</span>
-                            <span style={{ fontSize: 11, color: '#9CA3AF' }}>점</span>
-                            {g && <span style={{ padding: '2px 7px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: g.bg, color: g.color }}>{item.grade}등급</span>}
-                          </div>
-                        )}
-                        {item.reportId && (
-                          <Link to={`/reports/${item.reportId}`}
-                            style={{ fontSize: 11, color: '#2552FE', fontWeight: 600 }}>
-                            리포트 보기 →
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )
-          ) : (
-            payments.length === 0 ? (
-              <div className="glass-card" style={{ padding: 48, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                <p style={{ fontSize: 13, color: '#9CA3AF' }}>결제 내역이 없어요.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {payments.map((p) => (
-                  <div key={p.id} className="glass-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: '#E1F8E8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-                      </svg>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>크레딧 {p.totalCredits}개 구매</p>
-                      <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{p.createdAt?.slice(0, 10)}</p>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{p.amount?.toLocaleString()}원</span>
-                      <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: p.status === '완료' ? '#E1F8E8' : '#F3F4F6', color: p.status === '완료' ? '#16A34A' : '#6B7280', fontWeight: 600 }}>{p.status}</span>
-                    </div>
+          {/* 데이터 카드 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {DATASETS.map((d) => (
+              <div key={d.name} className="glass-card" style={{ padding: '20px 24px', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: d.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={d.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/>
+                  </svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{d.name}</h3>
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20, background: d.bg, color: d.color }}>{d.count}</span>
                   </div>
-                ))}
+                  <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 6 }}>{d.org}</p>
+                  <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{d.description}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>분류 · {d.category}</p>
+                </div>
               </div>
-            )
-          )}
+            ))}
+          </div>
+
+          <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', paddingBottom: 8 }}>
+            데이터는 공공데이터포털(data.go.kr) 및 각 기관 API를 통해 수집·정제하였습니다.
+          </p>
         </div>
       </main>
     </div>
