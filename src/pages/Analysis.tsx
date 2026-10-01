@@ -360,7 +360,7 @@ export default function Analysis() {
             </div>
 
             {/* 지도 */}
-            <div style={{ flex: 1, position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1.5px solid #E5E7EB', minHeight: 0 }}>
+            <div style={{ flex: 1, position: 'relative', borderRadius: 16, clipPath: 'inset(0 round 16px)', border: '1.5px solid #E5E7EB', minHeight: 0 }}>
               <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
               {loading && (
