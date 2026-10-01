@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import client from '../api/client';
 
 interface ReportData {
@@ -33,22 +33,19 @@ interface AiSummary {
   score_reasoning?: string;
 }
 
-const GRADE_COLOR: Record<string, string> = {
-  S: 'bg-green-100 text-green-700',
-  A: 'bg-blue-100 text-blue-700',
-  B: 'bg-yellow-100 text-yellow-700',
-  C: 'bg-orange-100 text-orange-700',
-  D: 'bg-red-100 text-red-700',
-  E: 'bg-red-100 text-red-800',
+const GRADE_STYLE: Record<string, { bg: string; color: string }> = {
+  S: { bg: '#E1F8E8', color: '#16A34A' },
+  A: { bg: '#EEF2FF', color: '#2552FE' },
+  B: { bg: '#FFFBEB', color: '#D97706' },
+  C: { bg: '#FFF7ED', color: '#EA580C' },
+  D: { bg: '#FEF2F2', color: '#DC2626' },
+  E: { bg: '#FEF2F2', color: '#991B1B' },
 };
 
 function parseAi(raw: string | null): AiSummary | null {
   if (!raw) return null;
-  try {
-    return typeof raw === 'string' ? JSON.parse(raw) : raw;
-  } catch {
-    return null;
-  }
+  try { return typeof raw === 'string' ? JSON.parse(raw) : raw; }
+  catch { return null; }
 }
 
 export default function Report() {
@@ -85,165 +82,190 @@ export default function Report() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <p className="text-gray-400">리포트 불러오는 중...</p>
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#9CA3AF', fontSize: 14 }}>리포트 불러오는 중...</p>
+      </main>
     </div>
   );
   if (!report) return null;
 
   const radiusLabel = report.radiusM >= 1000 ? `${report.radiusM / 1000}km` : `${report.radiusM}m`;
   const ai = parseAi(report.summaryJson);
+  const gradeStyle = GRADE_STYLE[report.grade] ?? { bg: '#F3F4F6', color: '#6B7280' };
+
+  const scorePercent = Math.min(100, Math.max(0, report.score));
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
-
-      <div className="bg-white border-b border-gray-200 px-16 py-6 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-xl font-bold text-gray-900">{report.category} · 반경 {radiusLabel}</h1>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${GRADE_COLOR[report.grade] ?? 'bg-gray-100 text-gray-600'}`}>
-              {report.grade}등급
-            </span>
-          </div>
-          <p className="text-sm text-gray-400">{report.createdAt?.slice(0, 10)} 분석 생성</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[13px] text-gray-500">보유 크레딧: <strong className="text-gray-900">{credits}개</strong></span>
-          {report.locked && (
-            credits > 0
-              ? <button onClick={handleUnlock} disabled={unlocking}
-                  className="bg-[#3B6FD4] text-white px-5 py-2.5 text-[13px] font-bold hover:bg-[#2e5ec0] transition-colors disabled:opacity-40">
-                  {unlocking ? '처리 중...' : '크레딧으로 잠금 해제'}
-                </button>
-              : <button onClick={() => navigate(`/payment/${id}`)}
-                  className="bg-[#3B6FD4] text-white px-5 py-2.5 text-[13px] font-bold hover:bg-[#2e5ec0] transition-colors">
-                  리포트 구매
-                </button>
-          )}
-        </div>
-      </div>
-
-      <div className="flex-1 px-16 py-8 flex flex-col gap-6">
-        {/* 핵심 지표 */}
-        <div className="grid grid-cols-4 gap-4">
-          {[
-            { label: '입지 점수', value: `${report.score}점`, sub: '100점 만점' },
-            { label: '경쟁 시설 수', value: `${report.competitorCount}개`, sub: `반경 ${radiusLabel} 내` },
-            { label: '폐업률', value: `${Number(report.closureRate).toFixed(1)}%`, sub: '낮을수록 안정적' },
-            { label: '공공시설 비율', value: `${Number(report.publicRatio).toFixed(1)}%`, sub: '경쟁 압력 지표' },
-          ].map((m) => (
-            <div key={m.label} className="bg-white border border-gray-200 p-5">
-              <p className="text-xs text-gray-400 mb-1">{m.label}</p>
-              <p className="text-[28px] font-bold text-[#3B6FD4]">{m.value}</p>
-              <p className="text-[11px] text-gray-400 mt-0.5">{m.sub}</p>
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main">
+        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
+                  {report.category} · 반경 {radiusLabel}
+                </h1>
+                <span style={{ ...gradeStyle, padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>
+                  {report.grade}등급
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: '#9CA3AF' }}>{report.createdAt?.slice(0, 10)} 분석 생성</p>
             </div>
-          ))}
-        </div>
-
-        {/* AI 분석 요약 */}
-        <div className="bg-white border border-gray-200 p-7">
-          <h2 className="text-base font-bold text-gray-900 mb-5">AI 입지 분석 리포트</h2>
-          {report.locked ? (
-            <div className="flex flex-col items-center gap-4 py-10">
-              <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <p className="text-sm text-gray-500">크레딧을 사용하면 AI 분석 리포트 전체를 확인할 수 있어요.</p>
-              {credits > 0
-                ? <button onClick={handleUnlock} disabled={unlocking}
-                    className="bg-[#3B6FD4] text-white px-6 py-2.5 text-sm font-bold hover:bg-[#2e5ec0] transition-colors">
-                    {unlocking ? '처리 중...' : `크레딧으로 잠금 해제 (${credits}개 보유)`}
-                  </button>
-                : <button onClick={() => navigate(`/payment/${id}`)}
-                    className="bg-[#3B6FD4] text-white px-6 py-2.5 text-sm font-bold hover:bg-[#2e5ec0] transition-colors">
-                    크레딧 구매하기
-                  </button>
-              }
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 13, color: '#6B7280' }}>크레딧 <strong style={{ color: '#111827' }}>{credits}개</strong></span>
+              {report.locked && (
+                credits > 0
+                  ? <button onClick={handleUnlock} disabled={unlocking}
+                      style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: unlocking ? 0.6 : 1 }}>
+                      {unlocking ? '처리 중...' : '크레딧으로 잠금 해제'}
+                    </button>
+                  : <button onClick={() => navigate(`/payment/${id}`)}
+                      style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      리포트 구매
+                    </button>
+              )}
             </div>
-          ) : ai ? (
-            <AiReport ai={ai} />
-          ) : (
-            <p className="text-sm text-gray-400 text-center py-6">분석 데이터를 불러올 수 없습니다.</p>
-          )}
-        </div>
-
-        {/* 경쟁 시설 */}
-        <div className="bg-white border border-gray-200 p-7">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-900">인근 경쟁 시설</h2>
-            <Link to={`/reports/${id}/competitors`} className="text-[13px] text-[#3B6FD4] hover:underline">
-              전체 보기 →
-            </Link>
           </div>
-          {report.locked ? (
-            <p className="text-sm text-gray-400 py-4 text-center">리포트 잠금 해제 후 상세 목록을 확인할 수 있어요.</p>
-          ) : (
-            <CompetitorPreview reportId={id!} />
-          )}
+
+          {/* Key Metrics */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            {[
+              { label: '입지 점수', value: `${report.score}점`, sub: '100점 만점', highlight: true },
+              { label: '경쟁 시설 수', value: `${report.competitorCount}개`, sub: `반경 ${radiusLabel} 내` },
+              { label: '폐업률', value: `${Number(report.closureRate).toFixed(1)}%`, sub: '낮을수록 안정적' },
+              { label: '공공시설 비율', value: `${Number(report.publicRatio).toFixed(1)}%`, sub: '경쟁 압력 지표' },
+            ].map((m) => (
+              <div key={m.label} className="glass-card" style={{ padding: 20 }}>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>{m.label}</p>
+                {m.highlight ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%',
+                      background: `conic-gradient(#2552FE 0% ${scorePercent}%, #E0E7FF ${scorePercent}% 100%)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: '#2552FE' }}>{report.score}</span>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px' }}>{m.value}</p>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>{m.value}</p>
+                )}
+                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* AI Report */}
+          <div className="glass-card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 16 }}>AI 입지 분석 리포트</h2>
+            {report.locked ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '32px 0' }}>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <p style={{ fontSize: 13, color: '#6B7280' }}>크레딧을 사용하면 AI 분석 리포트 전체를 확인할 수 있어요.</p>
+                {credits > 0
+                  ? <button onClick={handleUnlock} disabled={unlocking}
+                      style={{ background: '#2552FE', color: '#fff', padding: '10px 24px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      {unlocking ? '처리 중...' : `크레딧으로 잠금 해제 (${credits}개 보유)`}
+                    </button>
+                  : <button onClick={() => navigate(`/payment/${id}`)}
+                      style={{ background: '#2552FE', color: '#fff', padding: '10px 24px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      크레딧 구매하기
+                    </button>
+                }
+              </div>
+            ) : ai ? (
+              <AiReport ai={ai} />
+            ) : (
+              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '24px 0' }}>분석 데이터를 불러올 수 없습니다.</p>
+            )}
+          </div>
+
+          {/* Competitors */}
+          <div className="glass-card" style={{ padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>인근 경쟁 시설</h2>
+              <Link to={`/reports/${id}/competitors`} style={{ fontSize: 13, color: '#2552FE', fontWeight: 500 }}>
+                전체 보기 →
+              </Link>
+            </div>
+            {report.locked ? (
+              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '16px 0' }}>리포트 잠금 해제 후 상세 목록을 확인할 수 있어요.</p>
+            ) : (
+              <CompetitorPreview reportId={id!} />
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 function AiReport({ ai }: { ai: AiSummary }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {ai.summary && (
         <div>
-          <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">종합 요약</h3>
-          <p className="text-[14px] text-gray-800 leading-relaxed">{ai.summary}</p>
+          <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>종합 요약</h3>
+          <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{ai.summary}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-6">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {ai.market_analysis && (
           <div>
-            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">시장 분석</h3>
-            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.market_analysis}</p>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>시장 분석</h3>
+            <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.7 }}>{ai.market_analysis}</p>
           </div>
         )}
         {ai.competition_analysis && (
           <div>
-            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">경쟁 분석</h3>
-            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.competition_analysis}</p>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>경쟁 분석</h3>
+            <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.7 }}>{ai.competition_analysis}</p>
           </div>
         )}
         {ai.budget_analysis && (
           <div>
-            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">예산 분석</h3>
-            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.budget_analysis}</p>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>예산 분석</h3>
+            <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.7 }}>{ai.budget_analysis}</p>
           </div>
         )}
         {ai.score_reasoning && (
           <div>
-            <h3 className="text-[13px] font-bold text-gray-500 uppercase tracking-wide mb-2">점수 근거</h3>
-            <p className="text-[13px] text-gray-700 leading-relaxed">{ai.score_reasoning}</p>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>점수 근거</h3>
+            <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.7 }}>{ai.score_reasoning}</p>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {ai.cost_saving_tips && ai.cost_saving_tips.length > 0 && (
-          <div className="bg-amber-50 border border-amber-100 rounded p-4">
-            <h3 className="text-[12px] font-bold text-amber-700 mb-2">💰 비용 절감 전략</h3>
-            <ul className="flex flex-col gap-1.5">
+          <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 14, padding: 16 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#92400E', marginBottom: 10 }}>비용 절감 전략</h3>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {ai.cost_saving_tips.map((t, i) => (
-                <li key={i} className="text-[12px] text-amber-800 flex gap-1.5">
-                  <span className="shrink-0 mt-0.5">·</span>{t}
+                <li key={i} style={{ fontSize: 12, color: '#78350F', display: 'flex', gap: 6 }}>
+                  <span style={{ flexShrink: 0 }}>·</span>{t}
                 </li>
               ))}
             </ul>
           </div>
         )}
         {ai.survival_strategies && ai.survival_strategies.length > 0 && (
-          <div className="bg-purple-50 border border-purple-100 rounded p-4">
-            <h3 className="text-[12px] font-bold text-purple-700 mb-2">🛡️ 폐업 방지 전략</h3>
-            <ul className="flex flex-col gap-1.5">
+          <div style={{ background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 14, padding: 16 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#5B21B6', marginBottom: 10 }}>폐업 방지 전략</h3>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {ai.survival_strategies.map((s, i) => (
-                <li key={i} className="text-[12px] text-purple-800 flex gap-1.5">
-                  <span className="shrink-0 mt-0.5">·</span>{s}
+                <li key={i} style={{ fontSize: 12, color: '#4C1D95', display: 'flex', gap: 6 }}>
+                  <span style={{ flexShrink: 0 }}>·</span>{s}
                 </li>
               ))}
             </ul>
@@ -251,38 +273,30 @@ function AiReport({ ai }: { ai: AiSummary }) {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         {ai.risks && ai.risks.length > 0 && (
-          <div className="bg-red-50 border border-red-100 rounded p-4">
-            <h3 className="text-[12px] font-bold text-red-600 mb-2">위험 요인</h3>
-            <ul className="flex flex-col gap-1.5">
-              {ai.risks.map((r, i) => (
-                <li key={i} className="text-[12px] text-red-700 flex gap-1.5">
-                  <span className="shrink-0 mt-0.5">·</span>{r}
-                </li>
-              ))}
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: 16 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#991B1B', marginBottom: 10 }}>위험 요인</h3>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {ai.risks.map((r, i) => <li key={i} style={{ fontSize: 12, color: '#7F1D1D', display: 'flex', gap: 6 }}><span style={{ flexShrink: 0 }}>·</span>{r}</li>)}
             </ul>
           </div>
         )}
         {ai.opportunities && ai.opportunities.length > 0 && (
-          <div className="bg-green-50 border border-green-100 rounded p-4">
-            <h3 className="text-[12px] font-bold text-green-600 mb-2">기회 요인</h3>
-            <ul className="flex flex-col gap-1.5">
-              {ai.opportunities.map((o, i) => (
-                <li key={i} className="text-[12px] text-green-700 flex gap-1.5">
-                  <span className="shrink-0 mt-0.5">·</span>{o}
-                </li>
-              ))}
+          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 14, padding: 16 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#166534', marginBottom: 10 }}>기회 요인</h3>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {ai.opportunities.map((o, i) => <li key={i} style={{ fontSize: 12, color: '#14532D', display: 'flex', gap: 6 }}><span style={{ flexShrink: 0 }}>·</span>{o}</li>)}
             </ul>
           </div>
         )}
         {ai.recommendations && ai.recommendations.length > 0 && (
-          <div className="bg-blue-50 border border-blue-100 rounded p-4">
-            <h3 className="text-[12px] font-bold text-[#3B6FD4] mb-2">액션 플랜</h3>
-            <ul className="flex flex-col gap-1.5">
+          <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 14, padding: 16 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#1E40AF', marginBottom: 10 }}>액션 플랜</h3>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {ai.recommendations.map((r, i) => (
-                <li key={i} className="text-[12px] text-blue-700 flex gap-1.5">
-                  <span className="shrink-0 mt-0.5 font-bold">{i + 1}.</span>{r}
+                <li key={i} style={{ fontSize: 12, color: '#1E3A8A', display: 'flex', gap: 6 }}>
+                  <span style={{ flexShrink: 0, fontWeight: 700 }}>{i + 1}.</span>{r}
                 </li>
               ))}
             </ul>
@@ -302,29 +316,29 @@ function CompetitorPreview({ reportId }: { reportId: string }) {
       .catch(() => {});
   }, [reportId]);
 
-  if (competitors.length === 0) return <p className="text-sm text-gray-400 py-4 text-center">경쟁 시설 정보가 없습니다.</p>;
+  if (competitors.length === 0) return <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '16px 0' }}>경쟁 시설 정보가 없습니다.</p>;
 
   return (
-    <table className="w-full text-[13px]">
+    <table className="data-table">
       <thead>
-        <tr className="border-b border-gray-100">
-          <th className="text-left py-2 text-xs text-gray-400 font-medium">시설명</th>
-          <th className="text-left py-2 text-xs text-gray-400 font-medium">상태</th>
-          <th className="text-left py-2 text-xs text-gray-400 font-medium">규모</th>
-          <th className="text-right py-2 text-xs text-gray-400 font-medium">거리</th>
+        <tr>
+          <th>시설명</th>
+          <th>상태</th>
+          <th>규모</th>
+          <th style={{ textAlign: 'right' }}>거리</th>
         </tr>
       </thead>
       <tbody>
         {competitors.map((c, i) => (
-          <tr key={i} className="border-b border-gray-50">
-            <td className="py-2 text-gray-900">{c.name}</td>
-            <td className="py-2">
-              <span className={`text-[11px] px-1.5 py-0.5 ${c.status === '정상운영' ? 'text-green-600 bg-green-50' : 'text-gray-400 bg-gray-50'}`}>
+          <tr key={i}>
+            <td style={{ color: '#111827', fontWeight: 500 }}>{c.name}</td>
+            <td>
+              <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 6, ...(c.status === '정상운영' ? { background: '#E1F8E8', color: '#16A34A' } : { background: '#F3F4F6', color: '#9CA3AF' }) }}>
                 {c.status}
               </span>
             </td>
-            <td className="py-2 text-gray-500">{c.areaM2 ? `${c.areaM2}㎡` : '–'}</td>
-            <td className="py-2 text-right text-gray-500">{c.distanceM}m</td>
+            <td style={{ color: '#6B7280' }}>{c.areaM2 ? `${c.areaM2}㎡` : '–'}</td>
+            <td style={{ textAlign: 'right', color: '#6B7280' }}>{c.distanceM}m</td>
           </tr>
         ))}
       </tbody>

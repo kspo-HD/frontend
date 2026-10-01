@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import client from '../api/client';
 
 interface Term {
@@ -24,39 +24,43 @@ export default function Terms() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main">
+        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 720 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => navigate(-1)}
+              style={{ width: 34, height: 34, border: '1.5px solid #E5E7EB', borderRadius: 10, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>이용약관</h1>
+          </div>
 
-      <div className="flex-1 px-16 py-8 max-w-3xl mx-auto w-full">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-gray-600">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-xl font-bold text-gray-900">이용약관</h1>
-        </div>
+          <div className="glass-card" style={{ padding: 28 }}>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 24 }}>시행일: 2024년 1월 1일</p>
 
-        <div className="bg-white border border-gray-200 p-8 flex flex-col gap-7">
-          <p className="text-[12px] text-gray-400">시행일: 2024년 1월 1일</p>
-
-          {loading ? (
-            <p className="text-sm text-gray-400 text-center py-8">불러오는 중...</p>
-          ) : (
-            terms.map((t, i) => (
-              <div key={t.id} className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[14px] font-bold text-gray-900">제{i + 1}조 {t.title}</h2>
-                  {t.isRequired && (
-                    <span className="text-[10px] font-semibold text-[#3B6FD4] bg-blue-50 px-1.5 py-0.5 rounded">필수</span>
-                  )}
-                </div>
-                <p className="text-[13px] text-gray-600 leading-relaxed">{t.content}</p>
+            {loading ? (
+              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', padding: '32px 0' }}>불러오는 중...</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {terms.map((t, i) => (
+                  <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <h2 style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>제{i + 1}조 {t.title}</h2>
+                      {t.isRequired && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#2552FE', background: '#EEF2FF', padding: '2px 6px', borderRadius: 5 }}>필수</span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.7 }}>{t.content}</p>
+                  </div>
+                ))}
               </div>
-            ))
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

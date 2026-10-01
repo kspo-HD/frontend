@@ -26,13 +26,21 @@ const SIDOS = [
 ];
 
 const BUDGET_RANGES = [
-  '3천만원 미만',
-  '3천만원 ~ 5천만원',
-  '5천만원 ~ 1억원',
-  '1억원 ~ 3억원',
-  '3억원 ~ 5억원',
-  '5억원 이상',
+  '3천만원 미만', '3천만원 ~ 5천만원', '5천만원 ~ 1억원',
+  '1억원 ~ 3억원', '3억원 ~ 5억원', '5억원 이상',
 ];
+
+const chipStyle = (active: boolean): React.CSSProperties => ({
+  padding: '8px 14px',
+  fontSize: 13,
+  borderRadius: 10,
+  border: `1.5px solid ${active ? '#2552FE' : '#E5E7EB'}`,
+  background: active ? '#EEF2FF' : '#fff',
+  color: active ? '#1E3A8A' : '#374151',
+  fontWeight: active ? 600 : 400,
+  cursor: 'pointer',
+  transition: 'all 0.15s',
+});
 
 export default function Onboarding() {
   const [nickname, setNickname] = useState('');
@@ -61,98 +69,95 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
-      <div className="bg-white border border-gray-200 w-full max-w-[560px] p-10 flex flex-col gap-8">
-        <div className="flex flex-col gap-2 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">거의 다 됐어요!</h1>
-          <p className="text-[13px] text-gray-500 leading-relaxed">
-            창업 분석에 활용할 간단한 정보를 알려주세요.
-          </p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: '#F4F6FB' }}>
+      <div style={{ width: '100%', maxWidth: 560 }}>
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <span className="inline-flex items-center gap-2 font-bold text-xl tracking-tight" style={{ color: '#2552FE' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            FitMap
+          </span>
         </div>
 
-        {/* 닉네임 */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[13px] font-bold text-gray-900">
-            닉네임 <span className="text-red-400">*</span>
-          </label>
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="서비스에서 사용할 이름"
-            className="h-11 bg-gray-50 border border-gray-200 px-3.5 text-[13px] text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#3B6FD4] focus:border-transparent"
-          />
-        </div>
+        <div className="glass-card" style={{ padding: 36 }}>
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px', marginBottom: 8 }}>거의 다 됐어요!</h1>
+            <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>창업 분석에 활용할 간단한 정보를 알려주세요.</p>
+          </div>
 
-        {/* 관심 업종 */}
-        <div className="flex flex-col gap-2.5">
-          <label className="text-[13px] font-bold text-gray-900">관심 업종 <span className="text-gray-400 font-normal">(선택)</span></label>
-          <div className="flex flex-wrap gap-2">
-            {FACILITY_TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setInterestCategory(interestCategory === t.value ? '' : t.value)}
-                className={`px-3.5 py-2 text-[13px] border transition-colors ${
-                  interestCategory === t.value
-                    ? 'bg-[#3B6FD4] border-[#3B6FD4] text-white font-semibold'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-[#3B6FD4] hover:text-[#3B6FD4]'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* 닉네임 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                닉네임 <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="서비스에서 사용할 이름"
+                style={{ height: 44, border: '1.5px solid #E5E7EB', borderRadius: 12, padding: '0 14px', fontSize: 13, color: '#111827', outline: 'none', background: '#F9FAFB' }}
+                onFocus={e => (e.target.style.borderColor = '#2552FE')}
+                onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
+              />
+            </div>
+
+            {/* 관심 업종 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                관심 업종 <span style={{ fontSize: 12, fontWeight: 400, color: '#9CA3AF' }}>(선택)</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {FACILITY_TYPES.map((t) => (
+                  <button key={t.value} type="button"
+                    onClick={() => setInterestCategory(interestCategory === t.value ? '' : t.value)}
+                    style={chipStyle(interestCategory === t.value)}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 관심 지역 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                창업 희망 지역 <span style={{ fontSize: 12, fontWeight: 400, color: '#9CA3AF' }}>(선택)</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {SIDOS.map((sido) => (
+                  <button key={sido} type="button"
+                    onClick={() => setInterestSido(interestSido === sido ? '' : sido)}
+                    style={chipStyle(interestSido === sido)}>
+                    {sido.replace('특별시', '').replace('광역시', '').replace('특별자치시', '').replace('특별자치도', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 창업 예산 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                창업 예산 <span style={{ fontSize: 12, fontWeight: 400, color: '#9CA3AF' }}>(선택)</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {BUDGET_RANGES.map((range) => (
+                  <button key={range} type="button"
+                    onClick={() => setBudgetRange(budgetRange === range ? '' : range)}
+                    style={chipStyle(budgetRange === range)}>
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={handleSubmit} disabled={!nickname.trim() || loading}
+              style={{ width: '100%', height: 48, background: '#2552FE', color: '#fff', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 700, cursor: !nickname.trim() || loading ? 'not-allowed' : 'pointer', opacity: !nickname.trim() || loading ? 0.4 : 1, marginTop: 4 }}>
+              {loading ? '처리 중...' : '시작하기'}
+            </button>
           </div>
         </div>
-
-        {/* 관심 지역 */}
-        <div className="flex flex-col gap-2.5">
-          <label className="text-[13px] font-bold text-gray-900">창업 희망 지역 <span className="text-gray-400 font-normal">(선택)</span></label>
-          <div className="flex flex-wrap gap-2">
-            {SIDOS.map((sido) => (
-              <button
-                key={sido}
-                type="button"
-                onClick={() => setInterestSido(interestSido === sido ? '' : sido)}
-                className={`px-3.5 py-2 text-[13px] border transition-colors ${
-                  interestSido === sido
-                    ? 'bg-[#3B6FD4] border-[#3B6FD4] text-white font-semibold'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-[#3B6FD4] hover:text-[#3B6FD4]'
-                }`}
-              >
-                {sido.replace('특별시', '').replace('광역시', '').replace('특별자치시', '').replace('특별자치도', '').replace('특별시', '')}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 창업 예산 */}
-        <div className="flex flex-col gap-2.5">
-          <label className="text-[13px] font-bold text-gray-900">창업 예산 <span className="text-gray-400 font-normal">(선택)</span></label>
-          <div className="flex flex-wrap gap-2">
-            {BUDGET_RANGES.map((range) => (
-              <button
-                key={range}
-                type="button"
-                onClick={() => setBudgetRange(budgetRange === range ? '' : range)}
-                className={`px-3.5 py-2 text-[13px] border transition-colors ${
-                  budgetRange === range
-                    ? 'bg-[#3B6FD4] border-[#3B6FD4] text-white font-semibold'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-[#3B6FD4] hover:text-[#3B6FD4]'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={!nickname.trim() || loading}
-          className="w-full h-12 bg-[#3B6FD4] text-white text-[15px] font-bold hover:bg-[#2e5ec0] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {loading ? '처리 중...' : '시작하기'}
-        </button>
       </div>
     </div>
   );

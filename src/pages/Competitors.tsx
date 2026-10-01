@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import client from '../api/client';
 
 interface Competitor {
@@ -32,61 +32,60 @@ export default function Competitors() {
   }, [reportId]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main">
+        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Breadcrumb + Header */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#9CA3AF', marginBottom: 10 }}>
+              <Link to="/home" style={{ color: '#9CA3AF' }} className="hover:text-gray-600">마이페이지</Link>
+              <span>›</span>
+              <Link to={`/reports/${reportId}`} style={{ color: '#9CA3AF' }} className="hover:text-gray-600">리포트</Link>
+              <span>›</span>
+              <span style={{ color: '#374151' }}>경쟁 시설 목록</span>
+            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>인근 경쟁 시설</h1>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>분석 반경 내 동일 업종 시설 목록입니다.</p>
+          </div>
 
-      <div className="bg-white border-b border-gray-200 px-16 py-6">
-        <div className="flex items-center gap-2 text-[13px] text-gray-400 mb-3">
-          <Link to="/home" className="hover:text-gray-600">마이페이지</Link>
-          <span>›</span>
-          <Link to={`/reports/${reportId}`} className="hover:text-gray-600">리포트</Link>
-          <span>›</span>
-          <span className="text-gray-700">경쟁 시설 목록</span>
+          <div className="glass-card" style={{ overflow: 'hidden' }}>
+            {loading ? (
+              <p style={{ fontSize: 13, color: '#9CA3AF', padding: 32, textAlign: 'center' }}>불러오는 중...</p>
+            ) : competitors.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#6B7280', padding: 48, textAlign: 'center' }}>반경 내 경쟁 시설이 없습니다.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead style={{ background: '#F8FAFC', borderBottom: '1px solid #F3F4F6' }}>
+                    <tr>
+                      {['시설명', '업종', '상태', '주소', '면적', '거리'].map((h, i) => (
+                        <th key={h} style={{ padding: '12px 16px', textAlign: i === 5 ? 'right' : 'left', fontSize: 12, color: '#9CA3AF', fontWeight: 500 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {competitors.map((c) => (
+                      <tr key={c.facilityId} style={{ borderBottom: '1px solid #F9FAFB' }} className="hover:bg-gray-50">
+                        <td style={{ padding: '12px 16px', fontWeight: 500, color: '#111827' }}>{c.name}</td>
+                        <td style={{ padding: '12px 16px', color: '#4B5563' }}>{c.category}</td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ fontSize: 11, padding: '3px 8px', borderRadius: 6, ...(c.status === '정상운영' ? { background: '#E1F8E8', color: '#16A34A' } : { background: '#F3F4F6', color: '#9CA3AF' }) }}>
+                            {c.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#6B7280', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.roadAddr || '-'}</td>
+                        <td style={{ padding: '12px 16px', color: '#6B7280' }}>{c.areaM2 ? `${c.areaM2.toLocaleString()}㎡` : '-'}</td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right', color: '#6B7280' }}>{c.distanceM}m</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
-        <h1 className="text-xl font-bold text-gray-900">인근 경쟁 시설</h1>
-        <p className="text-sm text-gray-400 mt-1">분석 반경 내 동일 업종 시설 목록입니다.</p>
-      </div>
-
-      <div className="flex-1 px-16 py-8">
-        {loading ? (
-          <p className="text-gray-400 text-sm">불러오는 중...</p>
-        ) : competitors.length === 0 ? (
-          <div className="bg-white border border-gray-200 p-12 text-center">
-            <p className="text-sm text-gray-500">반경 내 경쟁 시설이 없습니다.</p>
-          </div>
-        ) : (
-          <div className="bg-white border border-gray-200">
-            <table className="w-full text-[13px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">시설명</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">업종</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">상태</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">주소</th>
-                  <th className="text-left px-5 py-3 text-xs text-gray-500 font-medium">면적</th>
-                  <th className="text-right px-5 py-3 text-xs text-gray-500 font-medium">거리</th>
-                </tr>
-              </thead>
-              <tbody>
-                {competitors.map((c) => (
-                  <tr key={c.facilityId} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium text-gray-900">{c.name}</td>
-                    <td className="px-5 py-3 text-gray-600">{c.category}</td>
-                    <td className="px-5 py-3">
-                      <span className={`text-[11px] px-2 py-0.5 rounded ${c.status === '정상운영' ? 'text-green-600 bg-green-50' : 'text-gray-400 bg-gray-100'}`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-gray-500 max-w-[200px] truncate">{c.roadAddr || '-'}</td>
-                    <td className="px-5 py-3 text-gray-500">{c.areaM2 ? `${c.areaM2.toLocaleString()}㎡` : '-'}</td>
-                    <td className="px-5 py-3 text-right text-gray-500">{c.distanceM}m</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
 }

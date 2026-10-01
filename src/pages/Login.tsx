@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import Navbar from '../components/Navbar';
 
 export default function Login() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
@@ -20,14 +19,23 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: '#F4F6FB' }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 font-bold text-xl tracking-tight" style={{ color: '#2552FE' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            FitMap
+          </Link>
+        </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm w-full max-w-md p-8">
+        <div className="glass-card p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">시작하기</h1>
-            <p className="text-sm text-gray-500 mt-2">
+            <h1 className="text-2xl font-bold" style={{ color: '#111827', letterSpacing: '-0.5px' }}>시작하기</h1>
+            <p className="text-sm mt-2" style={{ color: '#6B7280' }}>
               소셜 로그인으로 바로 시작하세요.<br />
               처음이시면 자동으로 가입됩니다.
             </p>
@@ -36,7 +44,8 @@ export default function Login() {
           <div className="flex flex-col gap-3">
             <button
               onClick={handleKakao}
-              className="flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] py-3 rounded-lg text-sm font-medium hover:bg-[#f0d900] transition-colors"
+              className="flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+              style={{ background: '#FEE500', color: '#191919' }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path fillRule="evenodd" clipRule="evenodd" d="M9 1.5C4.86 1.5 1.5 4.16 1.5 7.43c0 2.07 1.3 3.88 3.26 4.95L3.9 15.3a.28.28 0 0 0 .4.31l3.66-2.44A8.6 8.6 0 0 0 9 13.36c4.14 0 7.5-2.66 7.5-5.93S13.14 1.5 9 1.5Z" fill="#191919"/>
@@ -45,7 +54,8 @@ export default function Login() {
             </button>
             <button
               onClick={handleGoogle}
-              className="flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-700 py-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-semibold transition-colors hover:bg-gray-50"
+              style={{ background: '#fff', color: '#374151', border: '1.5px solid #E5E7EB' }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18">
                 <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z" fill="#4285F4"/>
@@ -57,6 +67,10 @@ export default function Login() {
             </button>
           </div>
         </div>
+
+        <p className="text-center text-xs mt-5" style={{ color: '#9CA3AF' }}>
+          계속하면 <Link to="/terms" className="underline" style={{ color: '#2552FE' }}>이용약관</Link>에 동의하는 것으로 간주됩니다.
+        </p>
       </div>
     </div>
   );

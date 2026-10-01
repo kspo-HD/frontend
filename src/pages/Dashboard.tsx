@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import client from '../api/client';
 
 interface Stats {
@@ -24,102 +24,102 @@ export default function Dashboard() {
   const topTypes = stats?.types.slice(0, 15) ?? [];
   const maxTypeCount = topTypes.length > 0 ? Math.max(...topTypes.map(t => Number(t.count))) : 1;
 
+  const summaryCards = [
+    { label: '전체 시설 수', value: stats ? stats.total.toLocaleString() + '개' : '–' },
+    { label: '업종 수', value: stats ? stats.categories.length + '종' : '–' },
+    { label: '등록 시도', value: stats ? stats.regions.length + '개' : '–' },
+    { label: '정상운영 비율', value: stats ? ((stats.active / stats.total) * 100).toFixed(1) + '%' : '–' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main">
+        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Header */}
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>
+              전국 피트니스 시설 대시보드
+            </h1>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>스포츠시설 명세서 + 공공개방시설 데이터 기반</p>
+          </div>
 
-      <div className="bg-white border-b border-gray-200 px-16 py-8">
-        <h1 className="text-2xl font-bold text-gray-900">전국 피트니스 시설 대시보드</h1>
-        <p className="text-sm text-gray-500 mt-2">스포츠시설 명세서 + 공공개방시설 데이터 기반</p>
-      </div>
+          {/* Summary Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            {summaryCards.map((m) => (
+              <div key={m.label} className="glass-card" style={{ padding: 20 }}>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>{m.label}</p>
+                <p style={{ fontSize: 26, fontWeight: 800, color: '#2552FE', letterSpacing: '-0.5px' }}>{m.value}</p>
+              </div>
+            ))}
+          </div>
 
-      <div className="flex-1 px-16 py-8 flex flex-col gap-8">
-        {/* 요약 카드 */}
-        <div className="grid grid-cols-4 gap-4">
-          {[
-            { label: '전체 시설 수', value: stats ? stats.total.toLocaleString() + '개' : '–' },
-            { label: '업종 수', value: stats ? stats.categories.length + '종' : '–' },
-            { label: '등록 시도', value: stats ? stats.regions.length + '개' : '–' },
-            { label: '정상운영 비율', value: stats ? ((stats.active / stats.total) * 100).toFixed(1) + '%' : '–' },
-          ].map((m) => (
-            <div key={m.label} className="bg-white border border-gray-200 p-5">
-              <p className="text-xs text-gray-400">{m.label}</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{m.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* 세부 유형별 분포 */}
-        <div className="bg-white border border-gray-200 p-7">
-          <h2 className="text-base font-bold text-gray-900 mb-5">세부 유형별 시설 수 (상위 15개)</h2>
-          {stats ? (
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-              {topTypes.map((t) => (
-                <div key={t.type} className="flex items-center gap-3">
-                  <span className="text-[13px] text-gray-600 w-24 shrink-0">{t.type}</span>
-                  <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#6B9FE4] rounded-full"
-                      style={{ width: `${(Number(t.count) / maxTypeCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-[13px] text-gray-500 w-16 text-right">{Number(t.count).toLocaleString()}개</span>
-                </div>
-              ))}
-            </div>
-          ) : <p className="text-sm text-gray-400">불러오는 중...</p>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          {/* 업종별 분포 */}
-          <div className="bg-white border border-gray-200 p-7">
-            <h2 className="text-base font-bold text-gray-900 mb-5">업종별 시설 수</h2>
+          {/* Types Distribution */}
+          <div className="glass-card" style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 16 }}>세부 유형별 시설 수 (상위 15개)</h2>
             {stats ? (
-              <div className="flex flex-col gap-3">
-                {stats.categories.map((c) => (
-                  <div key={c.category} className="flex items-center gap-3">
-                    <span className="text-[13px] text-gray-600 w-28 shrink-0">{c.category}</span>
-                    <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#3B6FD4] rounded-full"
-                        style={{ width: `${(Number(c.count) / maxCategoryCount) * 100}%` }}
-                      />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 32, rowGap: 12 }}>
+                {topTypes.map((t) => (
+                  <div key={t.type} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 13, color: '#4B5563', width: 96, flexShrink: 0 }}>{t.type}</span>
+                    <div style={{ flex: 1, background: '#F3F4F6', height: 6, borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', background: '#93AFFE', borderRadius: 99, width: `${(Number(t.count) / maxTypeCount) * 100}%` }} />
                     </div>
-                    <span className="text-[13px] text-gray-500 w-16 text-right">{Number(c.count).toLocaleString()}개</span>
+                    <span style={{ fontSize: 13, color: '#6B7280', width: 64, textAlign: 'right' }}>{Number(t.count).toLocaleString()}개</span>
                   </div>
                 ))}
               </div>
-            ) : <p className="text-sm text-gray-400">불러오는 중...</p>}
+            ) : <p style={{ fontSize: 13, color: '#9CA3AF' }}>불러오는 중...</p>}
           </div>
 
-          {/* 지역별 분포 */}
-          <div className="bg-white border border-gray-200 p-7">
-            <h2 className="text-base font-bold text-gray-900 mb-5">지역별 시설 수 (상위 10개)</h2>
-            {stats ? (
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left pb-2 text-xs text-gray-400 font-medium">시도</th>
-                    <th className="text-right pb-2 text-xs text-gray-400 font-medium">시설 수</th>
-                    <th className="text-right pb-2 text-xs text-gray-400 font-medium">비율</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topRegions.map((r) => (
-                    <tr key={r.sido} className="border-b border-gray-50">
-                      <td className="py-2 text-gray-900">{r.sido}</td>
-                      <td className="py-2 text-right text-gray-600">{Number(r.count).toLocaleString()}개</td>
-                      <td className="py-2 text-right text-gray-400">
-                        {((Number(r.count) / (stats.total || 1)) * 100).toFixed(1)}%
-                      </td>
-                    </tr>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Categories */}
+            <div className="glass-card" style={{ padding: 24 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 16 }}>업종별 시설 수</h2>
+              {stats ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {stats.categories.map((c) => (
+                    <div key={c.category} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 13, color: '#4B5563', width: 112, flexShrink: 0 }}>{c.category}</span>
+                      <div style={{ flex: 1, background: '#F3F4F6', height: 6, borderRadius: 99, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: '#2552FE', borderRadius: 99, width: `${(Number(c.count) / maxCategoryCount) * 100}%` }} />
+                      </div>
+                      <span style={{ fontSize: 13, color: '#6B7280', width: 64, textAlign: 'right' }}>{Number(c.count).toLocaleString()}개</span>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            ) : <p className="text-sm text-gray-400">불러오는 중...</p>}
+                </div>
+              ) : <p style={{ fontSize: 13, color: '#9CA3AF' }}>불러오는 중...</p>}
+            </div>
+
+            {/* Regions */}
+            <div className="glass-card" style={{ padding: 24 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 16 }}>지역별 시설 수 (상위 10개)</h2>
+              {stats ? (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>시도</th>
+                      <th style={{ textAlign: 'right' }}>시설 수</th>
+                      <th style={{ textAlign: 'right' }}>비율</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topRegions.map((r) => (
+                      <tr key={r.sido}>
+                        <td style={{ color: '#111827' }}>{r.sido}</td>
+                        <td style={{ textAlign: 'right', color: '#4B5563' }}>{Number(r.count).toLocaleString()}개</td>
+                        <td style={{ textAlign: 'right', color: '#9CA3AF' }}>
+                          {((Number(r.count) / (stats.total || 1)) * 100).toFixed(1)}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : <p style={{ fontSize: 13, color: '#9CA3AF' }}>불러오는 중...</p>}
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

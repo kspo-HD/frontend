@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import client from '../api/client';
 
 declare global { interface Window { kakao: any } }
@@ -34,6 +34,19 @@ interface FacilityPoint {
   category: string;
   isPublic: boolean;
 }
+
+const labelStyle: React.CSSProperties = { fontSize: 11, color: '#9CA3AF', marginBottom: 4 };
+const selectStyle: React.CSSProperties = {
+  height: 36,
+  background: '#F9FAFB',
+  border: '1.5px solid #E5E7EB',
+  borderRadius: 10,
+  padding: '0 10px',
+  fontSize: 13,
+  color: '#111827',
+  outline: 'none',
+  width: '100%',
+};
 
 export default function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -76,123 +89,99 @@ export default function Map() {
     }
   }, [sido, category, isPublic]);
 
-  useEffect(() => {
-    fetchFacilities();
-  }, [fetchFacilities]);
+  useEffect(() => { fetchFacilities(); }, [fetchFacilities]);
 
   useEffect(() => {
     if (!mapReady || !kakaoMapRef.current) return;
 
-    if (heatmapRef.current) {
-      heatmapRef.current.setMap(null);
-      heatmapRef.current = null;
-    }
-    if (clustererRef.current) {
-      clustererRef.current.clear();
-      clustererRef.current = null;
-    }
+    if (heatmapRef.current) { heatmapRef.current.setMap(null); heatmapRef.current = null; }
+    if (clustererRef.current) { clustererRef.current.clear(); clustererRef.current = null; }
 
     const validPoints = facilities.filter(f => f.lat && f.lng);
     if (validPoints.length === 0) return;
 
     if (viewMode === 'heatmap' && typeof window.kakao.maps.HeatMap === 'function') {
-      const data = validPoints.map(f => ({
-        position: new window.kakao.maps.LatLng(f.lat, f.lng),
-        count: 1,
-      }));
+      const data = validPoints.map(f => ({ position: new window.kakao.maps.LatLng(f.lat, f.lng), count: 1 }));
       try {
-        heatmapRef.current = new window.kakao.maps.HeatMap(kakaoMapRef.current, data, {
-          radius: 30,
-          opacity: 0.6,
-        });
-      } catch {
-        // HeatMap 불가 시 클러스터 마커로 폴백
-        renderClusters(validPoints);
-      }
+        heatmapRef.current = new window.kakao.maps.HeatMap(kakaoMapRef.current, data, { radius: 30, opacity: 0.6 });
+      } catch { renderClusters(validPoints); }
     } else {
       renderClusters(validPoints);
     }
 
     function renderClusters(points: FacilityPoint[]) {
       const markers = points.map(f =>
-        new window.kakao.maps.Marker({
-          position: new window.kakao.maps.LatLng(f.lat, f.lng),
-        })
+        new window.kakao.maps.Marker({ position: new window.kakao.maps.LatLng(f.lat, f.lng) })
       );
-      clustererRef.current = new window.kakao.maps.MarkerClusterer({
-        map: kakaoMapRef.current,
-        averageCenter: true,
-        minLevel: 10,
-      });
+      clustererRef.current = new window.kakao.maps.MarkerClusterer({ map: kakaoMapRef.current, averageCenter: true, minLevel: 10 });
       clustererRef.current.addMarkers(markers);
     }
   }, [mapReady, facilities, viewMode]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main fm-main-noscroll" style={{ flexDirection: 'row' }}>
+        {/* Filter Sidebar */}
+        <aside style={{ width: 240, flexShrink: 0, borderRight: '1px solid #F3F4F6', padding: 20, display: 'flex', flexDirection: 'column', gap: 16, overflowY: 'auto' }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>필터</h2>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[280px] shrink-0 bg-white border-r border-gray-200 flex flex-col gap-4 p-5">
-          <h2 className="text-sm font-bold text-gray-900">필터</h2>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500">시설 종류</label>
-            <select value={category} onChange={e => setCategory(e.target.value)}
-              className="h-9 bg-gray-50 border border-gray-200 px-3 text-[13px] text-gray-900 outline-none">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>시설 종류</label>
+            <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle}>
               {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500">지역</label>
-            <select value={sido} onChange={e => setSido(e.target.value)}
-              className="h-9 bg-gray-50 border border-gray-200 px-3 text-[13px] text-gray-900 outline-none">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>지역</label>
+            <select value={sido} onChange={e => setSido(e.target.value)} style={selectStyle}>
               {SIDOS.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500">공공/사설</label>
-            <select value={isPublic} onChange={e => setIsPublic(e.target.value)}
-              className="h-9 bg-gray-50 border border-gray-200 px-3 text-[13px] text-gray-900 outline-none">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>공공/사설</label>
+            <select value={isPublic} onChange={e => setIsPublic(e.target.value)} style={selectStyle}>
               {PUBLIC_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
           </div>
 
-          <hr className="border-gray-200" />
+          <hr style={{ border: 'none', borderTop: '1px solid #F3F4F6' }} />
 
-          <div className="flex flex-col gap-2">
-            <span className="text-xs text-gray-500">포화도 범례</span>
-            <div className="flex h-3 overflow-hidden">
-              {gradColors.map(c => <div key={c} className="flex-1" style={{ backgroundColor: c }} />)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={labelStyle}>포화도 범례</span>
+            <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+              {gradColors.map(c => <div key={c} style={{ flex: 1, background: c }} />)}
             </div>
-            <div className="flex justify-between">
-              <span className="text-[11px] text-gray-400">낮음</span>
-              <span className="text-[11px] text-gray-400">높음</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 10, color: '#9CA3AF' }}>낮음</span>
+              <span style={{ fontSize: 10, color: '#9CA3AF' }}>높음</span>
             </div>
           </div>
 
-          <span className="text-xs text-[#3B6FD4] mt-auto">
-            {loading ? '로딩 중...' : `검색 결과: ${facilities.length.toLocaleString()}개 시설`}
+          <span style={{ fontSize: 12, color: '#2552FE', marginTop: 'auto' }}>
+            {loading ? '로딩 중...' : `${facilities.length.toLocaleString()}개 시설`}
           </span>
         </aside>
 
-        <div className="flex-1 relative overflow-hidden">
-          <div ref={mapRef} className="w-full h-full" />
+        {/* Map */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-          <div className="absolute top-5 left-5 flex rounded-lg overflow-hidden border border-[#DDD] shadow-sm z-10">
+          {/* View Mode Toggle */}
+          <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', borderRadius: 10, overflow: 'hidden', border: '1.5px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', zIndex: 10 }}>
             <button onClick={() => setViewMode('heatmap')}
-              className={`px-3.5 py-2 text-xs font-semibold transition-colors ${viewMode === 'heatmap' ? 'bg-[#3B6FD4] text-white' : 'bg-white text-gray-600'}`}>
+              style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: viewMode === 'heatmap' ? '#2552FE' : '#fff', color: viewMode === 'heatmap' ? '#fff' : '#6B7280' }}>
               히트맵
             </button>
             <button onClick={() => setViewMode('marker')}
-              className={`px-3.5 py-2 text-xs font-medium transition-colors ${viewMode === 'marker' ? 'bg-[#3B6FD4] text-white' : 'bg-white text-gray-600'}`}>
+              style={{ padding: '7px 14px', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.15s', background: viewMode === 'marker' ? '#2552FE' : '#fff', color: viewMode === 'marker' ? '#fff' : '#6B7280' }}>
               마커
             </button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

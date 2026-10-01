@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import Sidebar from '../components/Sidebar';
 import { createAnalysis } from '../api/reports';
 
 declare global { interface Window { kakao: any; } }
@@ -35,12 +35,12 @@ const SIDO_SIGUNGU: Record<string, string[]> = {
 const SIDOS = Object.keys(SIDO_SIGUNGU);
 
 const BUDGET_OPTIONS = [
-  { label: '3천만원 미만',   sub: 'PT샵·소규모 도장',  value: '3,000만원 미만' },
-  { label: '3천~8천만원',    sub: '소형 헬스장·도장',   value: '3,000만원~8,000만원' },
-  { label: '8천만~1.5억',   sub: '중소형 헬스장',      value: '8,000만원~1억5,000만원' },
-  { label: '1.5억~3억',     sub: '중형 헬스장',        value: '1억5,000만원~3억원' },
-  { label: '3억~6억',       sub: '대형 헬스장',        value: '3억원~6억원' },
-  { label: '6억 이상',      sub: '특대형·수영장',       value: '6억원 이상' },
+  { label: '3천만원 미만',  sub: 'PT샵·소규모 도장',  value: '3,000만원 미만' },
+  { label: '3천~8천만원',   sub: '소형 헬스장·도장',   value: '3,000만원~8,000만원' },
+  { label: '8천만~1.5억',  sub: '중소형 헬스장',      value: '8,000만원~1억5,000만원' },
+  { label: '1.5억~3억',    sub: '중형 헬스장',        value: '1억5,000만원~3억원' },
+  { label: '3억~6억',      sub: '대형 헬스장',        value: '3억원~6억원' },
+  { label: '6억 이상',     sub: '특대형·수영장',       value: '6억원 이상' },
 ];
 
 const RADIUS_OPTIONS = [
@@ -67,6 +67,20 @@ function geocode(address: string): Promise<{ lat: number; lng: number }> {
   });
 }
 
+const dropdownStyle = (open: boolean): React.CSSProperties => ({
+  width: '100%',
+  height: 44,
+  border: `1.5px solid ${open ? '#2552FE' : '#E5E7EB'}`,
+  borderRadius: 12,
+  padding: '0 14px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  background: open ? '#EEF2FF' : '#F9FAFB',
+  cursor: 'pointer',
+  transition: 'all 0.15s',
+});
+
 export default function Analysis() {
   const navigate = useNavigate();
   const [category, setCategory] = useState(CATEGORIES[0].value);
@@ -81,6 +95,7 @@ export default function Analysis() {
   const [error, setError] = useState('');
 
   const selectedCategory = CATEGORIES.find(c => c.value === category)!;
+  const radiusLabel = RADIUS_OPTIONS.find(r => r.value === radius)?.label;
 
   const handleSubmit = async () => {
     if (!sido || !sigungu) {
@@ -92,8 +107,8 @@ export default function Analysis() {
     try {
       const address = `${sido} ${sigungu}`;
       const { lat, lng } = await geocode(address);
-      const res = await createAnalysis({ category, lat, lng, radiusM: radius, address, budgetRange: budget || undefined });
-      navigate(`/reports/${res.reportId}`);
+      const res = await createAnalysis({ category, lat, lng, radiusM: radius, address, budgetRange: budget || undefined }) as any;
+      navigate(`/reports/${res.reportId ?? res.id}`);
     } catch (e: any) {
       setError(e.message ?? '분석 중 오류가 발생했습니다.');
     } finally {
@@ -102,166 +117,152 @@ export default function Analysis() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
-
-      <div className="bg-white border-b border-gray-200 px-16 py-8">
-        <h1 className="text-2xl font-bold text-gray-900">창업 입지 분석</h1>
-        <p className="text-sm text-gray-500 mt-2">
-          업종과 지역을 선택하면 경쟁 지수·폐업률·입지 점수 리포트를 제공합니다
-        </p>
-      </div>
-
-      <div className="flex-1 flex gap-6 px-16 py-8">
-        {/* Form */}
-        <div className="w-[400px] shrink-0 bg-white border border-gray-200 p-8 flex flex-col gap-6">
-          <h2 className="text-base font-bold text-gray-900">분석 조건 입력</h2>
-
-          {/* 업종 */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className="text-[13px] font-bold text-gray-900">업종 선택</label>
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="w-full h-11 bg-[#EFF6FF] border border-[#3B6FD4] rounded px-3.5 flex items-center gap-2"
-            >
-              <span className="flex-1 text-left text-[13px] font-bold text-[#1E3A8A]">{selectedCategory.label}</span>
-              <svg className="w-4 h-4 text-[#3B6FD4] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={dropdownOpen ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <div className="absolute top-full left-0 w-full bg-white border border-[#3B6FD4] rounded shadow-md z-10 mt-0.5">
-                {CATEGORIES.map((c) => (
-                  <button key={c.value} onClick={() => { setCategory(c.value); setDropdownOpen(false); }}
-                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 border-b border-gray-100 text-left hover:bg-gray-50 ${c.value === category ? 'bg-[#EFF6FF]' : ''}`}>
-                    <span className={`text-[13px] ${c.value === category ? 'font-bold text-[#1E3A8A]' : 'text-gray-900'}`}>{c.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+    <div className="app-shell">
+      <Sidebar />
+      <main className="fm-main">
+        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24, height: '100%' }}>
+          {/* Header */}
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.5px' }}>창업 입지 분석</h1>
+            <p style={{ fontSize: 13, color: '#6B7280', marginTop: 4 }}>업종과 지역을 선택하면 경쟁 지수·폐업률·입지 점수 리포트를 제공합니다</p>
           </div>
 
-          {/* 광역시·도 */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className="text-[13px] font-bold text-gray-900">광역시·도</label>
-            <button
-              onClick={() => setSidoOpen(!sidoOpen)}
-              className="w-full h-11 bg-gray-50 border border-gray-200 rounded px-3.5 flex items-center gap-2"
-            >
-              <span className={`flex-1 text-left text-[13px] ${sido ? 'text-gray-900' : 'text-gray-400'}`}>{sido || '선택하세요'}</span>
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sidoOpen ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
-              </svg>
-            </button>
-            {sidoOpen && (
-              <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded shadow-md z-10 mt-0.5 max-h-48 overflow-y-auto">
-                {SIDOS.map((s) => (
-                  <button key={s} onClick={() => { setSido(s); setSidoOpen(false); setSigungu(''); setSigunguOpen(false); }}
-                    className={`w-full px-3.5 py-2.5 text-left text-[13px] border-b border-gray-100 hover:bg-gray-50 ${s === sido ? 'font-bold text-[#3B6FD4] bg-[#EFF6FF]' : 'text-gray-900'}`}>
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <div style={{ display: 'flex', gap: 24, flex: 1, minHeight: 0 }}>
+            {/* Form */}
+            <div className="glass-card" style={{ width: 380, flexShrink: 0, padding: 24, display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto' }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>분석 조건 입력</h2>
 
-          {/* 시·군·구 */}
-          <div className="flex flex-col gap-1.5 relative">
-            <label className="text-[13px] font-bold text-gray-900">시·군·구</label>
-            <button
-              onClick={() => { if (sido) setSigunguOpen(!sigunguOpen); }}
-              disabled={!sido}
-              className={`w-full h-11 border rounded px-3.5 flex items-center gap-2 ${sido ? 'bg-gray-50 border-gray-200' : 'bg-gray-100 border-gray-200 cursor-not-allowed opacity-50'}`}
-            >
-              <span className={`flex-1 text-left text-[13px] ${sigungu ? 'text-gray-900' : 'text-gray-400'}`}>{sigungu || '선택하세요'}</span>
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={sigunguOpen ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
-              </svg>
-            </button>
-            {sigunguOpen && sido && (
-              <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded shadow-md z-10 mt-0.5 max-h-48 overflow-y-auto">
-                {SIDO_SIGUNGU[sido]?.map((sg) => (
-                  <button key={sg} onClick={() => { setSigungu(sg); setSigunguOpen(false); }}
-                    className={`w-full px-3.5 py-2.5 text-left text-[13px] border-b border-gray-100 hover:bg-gray-50 ${sg === sigungu ? 'font-bold text-[#3B6FD4] bg-[#EFF6FF]' : 'text-gray-900'}`}>
-                    {sg}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 창업 예산 */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-900">
-              창업 예산 <span className="text-[11px] font-normal text-gray-400">(선택)</span>
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {BUDGET_OPTIONS.map((b) => (
-                <button
-                  key={b.value}
-                  onClick={() => setBudget(budget === b.value ? '' : b.value)}
-                  className={`py-2.5 px-1 rounded border text-center transition-colors ${
-                    budget === b.value
-                      ? 'bg-[#EFF6FF] border-[#3B6FD4]'
-                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className={`text-[12px] font-bold leading-tight ${budget === b.value ? 'text-[#1E3A8A]' : 'text-gray-800'}`}>{b.label}</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">{b.sub}</div>
+              {/* 업종 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>업종 선택</label>
+                <button onClick={() => setDropdownOpen(!dropdownOpen)} style={dropdownStyle(dropdownOpen)}>
+                  <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: 600, color: '#2552FE' }}>{selectedCategory.label}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2552FE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={dropdownOpen ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'}/>
+                  </svg>
                 </button>
-              ))}
+                {dropdownOpen && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', background: '#fff', border: '1.5px solid #2552FE', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.08)', zIndex: 20, marginTop: 4, overflow: 'hidden' }}>
+                    {CATEGORIES.map((c) => (
+                      <button key={c.value} onClick={() => { setCategory(c.value); setDropdownOpen(false); }}
+                        style={{ width: '100%', padding: '11px 14px', textAlign: 'left', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: c.value === category ? '#EEF2FF' : '#fff', color: c.value === category ? '#2552FE' : '#111827', fontWeight: c.value === category ? 600 : 400, cursor: 'pointer' }}
+                        className="hover:bg-gray-50">
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 광역시·도 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>광역시·도</label>
+                <button onClick={() => setSidoOpen(!sidoOpen)} style={dropdownStyle(sidoOpen)}>
+                  <span style={{ flex: 1, textAlign: 'left', fontSize: 13, color: sido ? '#111827' : '#9CA3AF' }}>{sido || '선택하세요'}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={sidoOpen ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'}/>
+                  </svg>
+                </button>
+                {sidoOpen && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', background: '#fff', border: '1.5px solid #E5E7EB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.08)', zIndex: 20, marginTop: 4, maxHeight: 200, overflowY: 'auto' }}>
+                    {SIDOS.map((s) => (
+                      <button key={s} onClick={() => { setSido(s); setSidoOpen(false); setSigungu(''); }}
+                        style={{ width: '100%', padding: '10px 14px', textAlign: 'left', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: s === sido ? '#EEF2FF' : '#fff', color: s === sido ? '#2552FE' : '#111827', fontWeight: s === sido ? 600 : 400, cursor: 'pointer' }}
+                        className="hover:bg-gray-50">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 시·군·구 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>시·군·구</label>
+                <button onClick={() => { if (sido) setSigunguOpen(!sigunguOpen); }} disabled={!sido}
+                  style={{ ...dropdownStyle(sigunguOpen), opacity: sido ? 1 : 0.5, cursor: sido ? 'pointer' : 'not-allowed' }}>
+                  <span style={{ flex: 1, textAlign: 'left', fontSize: 13, color: sigungu ? '#111827' : '#9CA3AF' }}>{sigungu || '선택하세요'}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={sigunguOpen ? 'M18 15l-6-6-6 6' : 'M6 9l6 6 6-6'}/>
+                  </svg>
+                </button>
+                {sigunguOpen && sido && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', background: '#fff', border: '1.5px solid #E5E7EB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.08)', zIndex: 20, marginTop: 4, maxHeight: 200, overflowY: 'auto' }}>
+                    {SIDO_SIGUNGU[sido]?.map((sg) => (
+                      <button key={sg} onClick={() => { setSigungu(sg); setSigunguOpen(false); }}
+                        style={{ width: '100%', padding: '10px 14px', textAlign: 'left', fontSize: 13, borderBottom: '1px solid #F3F4F6', background: sg === sigungu ? '#EEF2FF' : '#fff', color: sg === sigungu ? '#2552FE' : '#111827', fontWeight: sg === sigungu ? 600 : 400, cursor: 'pointer' }}
+                        className="hover:bg-gray-50">
+                        {sg}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 창업 예산 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>
+                  창업 예산 <span style={{ fontSize: 11, fontWeight: 400, color: '#9CA3AF' }}>(선택)</span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {BUDGET_OPTIONS.map((b) => (
+                    <button key={b.value} onClick={() => setBudget(budget === b.value ? '' : b.value)}
+                      style={{ padding: '10px 6px', borderRadius: 10, border: `1.5px solid ${budget === b.value ? '#2552FE' : '#E5E7EB'}`, background: budget === b.value ? '#EEF2FF' : '#F9FAFB', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: budget === b.value ? '#1E3A8A' : '#374151', lineHeight: 1.3 }}>{b.label}</div>
+                      <div style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{b.sub}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 반경 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>분석 반경</label>
+                <div style={{ display: 'flex', background: '#F3F4F6', borderRadius: 12, overflow: 'hidden', border: '1.5px solid #E5E7EB' }}>
+                  {RADIUS_OPTIONS.map((r) => (
+                    <button key={r.value} onClick={() => setRadius(r.value)}
+                      style={{ flex: 1, height: 40, fontSize: 13, fontWeight: r.value === radius ? 700 : 400, color: r.value === radius ? '#2552FE' : '#6B7280', background: r.value === radius ? '#fff' : 'transparent', border: r.value === radius ? '1.5px solid #2552FE' : 'none', borderRadius: r.value === radius ? 10 : 0, cursor: 'pointer', transition: 'all 0.15s', margin: r.value === radius ? 2 : 0 }}>
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>중심점 기준 원형 반경 — 1km 추천 (도심 기준)</span>
+              </div>
+
+              {error && <p style={{ fontSize: 13, color: '#EF4444' }}>{error}</p>}
+
+              <button onClick={handleSubmit} disabled={loading || !sido || !sigungu}
+                style={{ width: '100%', height: 48, background: '#2552FE', color: '#fff', borderRadius: 12, border: 'none', fontSize: 14, fontWeight: 700, cursor: loading || !sido || !sigungu ? 'not-allowed' : 'pointer', opacity: loading || !sido || !sigungu ? 0.4 : 1, transition: 'all 0.2s' }}>
+                {loading ? '분석 중...' : '입지 점수 분석 시작'}
+              </button>
+            </div>
+
+            {/* Preview */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>조건을 입력하면 리포트 페이지에서 결과를 확인할 수 있습니다</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+                {[
+                  { title: '경쟁 시설 수', sub: `반경 ${radiusLabel} 내` },
+                  { title: '폐업률', sub: '낮을수록 안정적인 시장' },
+                  { title: '입지 점수', sub: '100점 만점' },
+                ].map((c) => (
+                  <div key={c.title} className="glass-card" style={{ padding: 20 }}>
+                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>{c.title}</span>
+                    <p style={{ fontSize: 28, fontWeight: 800, color: '#E5E7EB', letterSpacing: '-0.5px', margin: '6px 0' }}>–</p>
+                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{c.sub}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="glass-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#E5E7EB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span style={{ fontSize: 13, color: '#9CA3AF' }}>분석 조건을 입력하고 시작 버튼을 눌러주세요</span>
+              </div>
             </div>
           </div>
-
-          {/* 반경 */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-900">분석 반경</label>
-            <div className="h-11 bg-gray-100 border border-gray-200 rounded flex overflow-hidden">
-              {RADIUS_OPTIONS.map((r) => (
-                <button key={r.value} onClick={() => setRadius(r.value)}
-                  className={`flex-1 h-full text-[13px] transition-colors ${radius === r.value ? 'bg-white border border-[#3B6FD4] text-[#3B6FD4] font-bold rounded' : 'text-gray-500'}`}>
-                  {r.label}
-                </button>
-              ))}
-            </div>
-            <span className="text-[11px] text-gray-400">중심점 기준 원형 반경 — 1km 추천 (도심 기준)</span>
-          </div>
-
-          {error && <p className="text-[13px] text-red-500">{error}</p>}
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading || !sido || !sigungu}
-            className="w-full h-12 bg-[#3B6FD4] text-white text-[15px] font-bold hover:bg-[#2e5ec0] transition-colors disabled:opacity-40 disabled:cursor-not-allowed mt-2"
-          >
-            {loading ? '분석 중...' : '입지 점수 분석 시작'}
-          </button>
         </div>
-
-        {/* Preview */}
-        <div className="flex-1 flex flex-col gap-6">
-          <p className="text-xs text-gray-400">조건을 입력하면 리포트 페이지에서 결과를 확인할 수 있습니다</p>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { title: '경쟁 시설 수', sub: `반경 ${RADIUS_OPTIONS.find(r=>r.value===radius)?.label} 내` },
-              { title: '폐업률', sub: '낮을수록 안정적인 시장' },
-              { title: '입지 점수', sub: '100점 만점' },
-            ].map((c) => (
-              <div key={c.title} className="bg-white border border-gray-200 p-5 flex flex-col gap-1.5">
-                <span className="text-xs text-gray-400">{c.title}</span>
-                <span className="text-[28px] font-bold text-gray-300">–</span>
-                <span className="text-[11px] text-gray-400">{c.sub}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex-1 bg-white border border-gray-200 flex flex-col items-center justify-center gap-3 min-h-[300px]">
-            <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span className="text-sm text-gray-400">분석 조건을 입력하고 시작 버튼을 눌러주세요</span>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
