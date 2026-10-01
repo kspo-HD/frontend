@@ -18,6 +18,10 @@ interface ReportData {
   lng: number;
   radiusM: number;
   createdAt: string;
+  aerobicRate?: number;
+  walkingRate?: number;
+  obesityRate?: number;
+  healthRegion?: string;
 }
 
 interface AiSummary {
@@ -154,33 +158,76 @@ export default function Report() {
 
           {/* Key Metrics */}
           <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            {[
-              { label: '입지 점수', value: `${report.score}점`, sub: '100점 만점', highlight: true },
-              { label: '경쟁 시설 수', value: `${report.competitorCount}개`, sub: `반경 ${radiusLabel} 내` },
-              { label: '폐업률', value: `${Number(report.closureRate).toFixed(1)}%`, sub: '낮을수록 안정적' },
-              { label: '공공시설 비율', value: `${Number(report.publicRatio).toFixed(1)}%`, sub: '경쟁 압력 지표' },
-            ].map((m) => (
-              <div key={m.label} className="glass-card" style={{ padding: 20 }}>
-                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>{m.label}</p>
-                {m.highlight ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: '50%',
-                      background: `conic-gradient(#2552FE 0% ${scorePercent}%, #E0E7FF ${scorePercent}% 100%)`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: '#2552FE' }}>{report.score}</span>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px' }}>{m.value}</p>
+            {/* 입지 점수 */}
+            <div className="glass-card" style={{ padding: 20 }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>입지 점수</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: '50%',
+                  background: `conic-gradient(#2552FE 0% ${scorePercent}%, #E0E7FF ${scorePercent}% 100%)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#2552FE' }}>{report.score}</span>
                   </div>
-                ) : (
-                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>{m.value}</p>
-                )}
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>{m.sub}</p>
+                </div>
+                <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px' }}>{report.score}점</p>
               </div>
-            ))}
+              <p style={{ fontSize: 11, color: '#9CA3AF' }}>100점 만점</p>
+            </div>
+
+            {/* 경쟁 시설 수 */}
+            <div className="glass-card" style={{ padding: 20 }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>경쟁 시설 수</p>
+              <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>{report.competitorCount}개</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF' }}>반경 {radiusLabel} 내 동일 업종</p>
+            </div>
+
+            {/* 운동 실천율 OR 폐업률 폴백 */}
+            <div className="glass-card" style={{ padding: 20 }}>
+              {report.aerobicRate != null ? (
+                <>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>운동 실천율</p>
+                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>
+                    {Number(report.aerobicRate).toFixed(1)}%
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    {report.healthRegion} 중강도 이상 · {report.aerobicRate < 25 ? '미개척 수요 높음' : '활성 시장'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>폐업률</p>
+                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>
+                    {Number(report.closureRate).toFixed(1)}%
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>낮을수록 안정적</p>
+                </>
+              )}
+            </div>
+
+            {/* 비만율 OR 공공시설 폴백 */}
+            <div className="glass-card" style={{ padding: 20 }}>
+              {report.obesityRate != null ? (
+                <>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>지역 비만율</p>
+                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>
+                    {Number(report.obesityRate).toFixed(1)}%
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    {report.healthRegion} · {report.obesityRate > 30 ? '잠재 수요 높음' : '평균 수준'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>공공시설 비율</p>
+                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>
+                    {Number(report.publicRatio).toFixed(1)}%
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>경쟁 압력 지표</p>
+                </>
+              )}
+            </div>
           </div>
 
           {/* AI Report */}
