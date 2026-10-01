@@ -23,6 +23,8 @@ export default function Home() {
       await withdraw();
       logout();
       navigate('/');
+    } catch (e: any) {
+      alert(e?.response?.data?.error ?? '탈퇴 처리 중 오류가 발생했습니다.');
     } finally {
       setWithdrawing(false);
     }
