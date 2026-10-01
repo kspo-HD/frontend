@@ -229,12 +229,20 @@ export default function Analysis() {
     if (!pin) { setError('지도를 클릭해 분석할 위치를 선택해주세요.'); return; }
     setError('');
     setLoading(true);
+
+    // 크레딧 사전 체크 (별도 try — 실패해도 분석 진행 막지 않음)
     try {
       const credits = await getRemainingCredits();
-      if (!credits || (credits as any).count === 0) {
+      if ((credits as any)?.count === 0) {
         setShowCreditModal(true);
+        setLoading(false);
         return;
       }
+    } catch {
+      // 크레딧 조회 실패 시 백엔드 응답에 맡김
+    }
+
+    try {
       const res = await createAnalysis({
         category, lat: pin.lat, lng: pin.lng,
         radiusM: radius, address: pin.address,
@@ -243,10 +251,10 @@ export default function Analysis() {
       navigate(`/reports/${res.reportId ?? res.id}`);
     } catch (e: any) {
       const status = e?.response?.status;
-      if (status === 500 || status === 402 || status === 403) {
+      if (status === 402) {
         setShowCreditModal(true);
       } else {
-        setError(e.message ?? '분석 중 오류가 발생했습니다.');
+        setError(e?.response?.data?.message ?? e?.message ?? '분석 중 오류가 발생했습니다.');
       }
     } finally {
       setLoading(false);
