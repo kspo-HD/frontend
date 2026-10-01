@@ -80,7 +80,7 @@ export default function Payment() {
             </button>
 
             <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', marginTop: 14 }}>
-              현재 테스트 환경 — 실제 결제가 발생하지 않습니다.
+              결제 기능은 현재 MVP 범위에서 제외되어 있습니다.
             </p>
           </div>
         </div>
