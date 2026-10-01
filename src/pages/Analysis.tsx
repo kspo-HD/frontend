@@ -231,7 +231,7 @@ export default function Analysis() {
     setLoading(true);
     try {
       const credits = await getRemainingCredits();
-      if ((credits as any) === 0 || credits === null) {
+      if (!credits || (credits as any).count === 0) {
         setShowCreditModal(true);
         return;
       }
