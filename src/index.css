@@ -6,6 +6,39 @@
   to { transform: rotate(360deg); }
 }
 
+@media print {
+  /* 사이드바, 버튼류 숨김 */
+  .app-shell > aside,
+  .no-print { display: none !important; }
+
+  /* 인쇄 전용 헤더 표시 */
+  .print-only { display: block !important; }
+
+  /* 레이아웃 리셋 */
+  body, .app-shell, .fm-main { background: #fff !important; }
+  .app-shell { display: block !important; }
+  .fm-main { padding: 0 !important; overflow: visible !important; }
+
+  #report-print {
+    padding: 16px 24px !important;
+    gap: 18px !important;
+  }
+
+  /* 유리 카드 테두리만 */
+  .glass-card {
+    box-shadow: none !important;
+    border: 1px solid #E5E7EB !important;
+    background: #fff !important;
+    break-inside: avoid;
+  }
+
+  /* 페이지 설정 */
+  @page {
+    margin: 16mm 14mm;
+    size: A4;
+  }
+}
+
 :root {
   --primary-blue: #2552FE;
   --primary-blue-hover: #1A41D9;

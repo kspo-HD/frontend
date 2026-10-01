@@ -103,7 +103,14 @@ export default function Report() {
     <div className="app-shell">
       <Sidebar />
       <main className="fm-main">
-        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div id="report-print" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* 인쇄 전용 헤더 */}
+          <div className="print-only" style={{ display: 'none', borderBottom: '2px solid #2552FE', paddingBottom: 12, marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#2552FE', letterSpacing: '-0.5px' }}>FitMap</span>
+              <span style={{ fontSize: 11, color: '#9CA3AF' }}>창업 입지 분석 리포트 · fitmap.kr</span>
+            </div>
+          </div>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
@@ -119,6 +126,15 @@ export default function Report() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {!report.locked && (
+                  <button onClick={() => window.print()} className="no-print"
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1.5px solid #E5E7EB', background: '#fff', color: '#374151', padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                    </svg>
+                    PDF 저장
+                  </button>
+                )}
                 <span style={{ fontSize: 13, color: '#6B7280' }}>크레딧 <strong style={{ color: '#111827' }}>{credits}개</strong></span>
                 {report.locked && (
                   credits > 0
