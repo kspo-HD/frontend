@@ -69,7 +69,11 @@ function buildMarkdown(report: ReportData, ai: AiSummary | null, competitors: an
   lines.push(`| 경쟁 시설 수 | **${report.competitorCount}개** | 반경 ${radiusLabel} 내 동일 업종 |`);
   if (report.aerobicRate != null) {
     const label = Number(report.aerobicRate) < 25 ? '미개척 수요 높음' : '활성 시장';
-    lines.push(`| 운동 실천율 | **${Number(report.aerobicRate).toFixed(1)}%** | ${report.healthRegion} · ${label} |`);
+    lines.push(`| 운동 실천율 (중강도 이상) | **${Number(report.aerobicRate).toFixed(1)}%** | ${report.healthRegion} · ${label} |`);
+  }
+  if (report.walkingRate != null) {
+    const label = Number(report.walkingRate) < 50 ? '기초 활동 낮음' : '기초 활동 양호';
+    lines.push(`| 걷기 실천율 | **${Number(report.walkingRate).toFixed(1)}%** | ${report.healthRegion} · ${label} |`);
   }
   if (report.obesityRate != null) {
     const label = Number(report.obesityRate) > 30 ? '잠재 수요 높음' : '평균 수준';
@@ -304,17 +308,23 @@ export default function Report() {
               <p style={{ fontSize: 11, color: '#9CA3AF' }}>반경 {radiusLabel} 내 동일 업종</p>
             </div>
 
-            {/* 운동 실천율 OR 폐업률 폴백 */}
+            {/* 건강 활동 지표 (운동 실천율 + 걷기 실천율) OR 폐업률 폴백 */}
             <div className="glass-card" style={{ padding: 20 }}>
               {report.aerobicRate != null ? (
                 <>
-                  <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>운동 실천율</p>
-                  <p style={{ fontSize: 28, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 4 }}>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>건강 활동 지표</p>
+                  <p style={{ fontSize: 24, fontWeight: 800, color: '#2552FE', letterSpacing: '-1px', marginBottom: 2 }}>
                     {Number(report.aerobicRate).toFixed(1)}%
                   </p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>
-                    {report.healthRegion} 중강도 이상 · {report.aerobicRate < 25 ? '미개척 수요 높음' : '활성 시장'}
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 6 }}>
+                    중강도 이상 운동 실천율 · {Number(report.aerobicRate) < 25 ? '미개척 수요 높음' : '활성 시장'}
                   </p>
+                  {report.walkingRate != null && (
+                    <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#9CA3AF' }}>걷기 실천율</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{Number(report.walkingRate).toFixed(1)}%</span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
