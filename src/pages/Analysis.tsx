@@ -1,8 +1,71 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { createAnalysis } from '../api/reports';
+import { createAnalysis, getRemainingCredits } from '../api/reports';
 import client from '../api/client';
+
+const BUNDLES = [
+  { type: 1, label: '1회', price: 9_900,  unitPrice: 9_900, tag: '' },
+  { type: 3, label: '3회', price: 24_900, unitPrice: 8_300, tag: '추천' },
+  { type: 5, label: '5회', price: 39_000, unitPrice: 7_800, tag: '최저가' },
+];
+
+function CreditModal({ onClose, navigate }: { onClose: () => void; navigate: (p: string) => void }) {
+  const [selected, setSelected] = useState(3);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const bundle = BUNDLES.find(b => b.type === selected)!;
+
+  const handlePurchase = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await client.post('/api/v1/payments', { bundleType: selected });
+      onClose();
+      navigate('/home');
+    } catch {
+      setError('결제에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+      onClick={onClose}>
+      <div className="glass-card" style={{ width: 440, padding: 32, margin: 16 }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>크레딧이 없습니다</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, lineHeight: 1 }}>×</button>
+        </div>
+        <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 20 }}>입지 분석을 시작하려면 크레딧이 필요합니다. 크레딧 1개로 AI 분석 리포트 1개를 생성할 수 있어요.</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+          {BUNDLES.map(b => (
+            <button key={b.type} onClick={() => setSelected(b.type)}
+              style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 14, border: `2px solid ${selected === b.type ? '#2552FE' : '#E5E7EB'}`, background: selected === b.type ? '#EEF2FF' : '#fff', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+              {b.tag && <span style={{ position: 'absolute', top: 10, right: 12, fontSize: 10, fontWeight: 700, color: '#fff', background: '#2552FE', padding: '2px 8px', borderRadius: 20 }}>{b.tag}</span>}
+              <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${selected === b.type ? '#2552FE' : '#D1D5DB'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {selected === b.type && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2552FE' }} />}
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>크레딧 {b.label}</p>
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>개당 {b.unitPrice.toLocaleString()}원</p>
+              </div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{b.price.toLocaleString()}원</p>
+            </button>
+          ))}
+        </div>
+
+        {error && <p style={{ fontSize: 12, color: '#EF4444', marginBottom: 10 }}>{error}</p>}
+        <button onClick={handlePurchase} disabled={loading}
+          style={{ width: '100%', height: 48, background: '#2552FE', color: '#fff', borderRadius: 12, border: 'none', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>
+          {loading ? '처리 중...' : `${bundle.price.toLocaleString()}원 결제하기`}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 declare global { interface Window { kakao: any; } }
 
@@ -71,6 +134,7 @@ export default function Analysis() {
   const [pin, setPin]                     = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [nearbyCount, setNearbyCount]     = useState<number | null>(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
 
   const selectedCategory = CATEGORIES.find(c => c.value === category)!;
   const radiusLabel      = RADIUS_OPTIONS.find(r => r.value === radius)?.label;
@@ -166,6 +230,11 @@ export default function Analysis() {
     setError('');
     setLoading(true);
     try {
+      const credits = await getRemainingCredits();
+      if ((credits as any) === 0 || credits === null) {
+        setShowCreditModal(true);
+        return;
+      }
       const res = await createAnalysis({
         category, lat: pin.lat, lng: pin.lng,
         radiusM: radius, address: pin.address,
@@ -173,7 +242,12 @@ export default function Analysis() {
       }) as any;
       navigate(`/reports/${res.reportId ?? res.id}`);
     } catch (e: any) {
-      setError(e.message ?? '분석 중 오류가 발생했습니다.');
+      const status = e?.response?.status;
+      if (status === 500 || status === 402 || status === 403) {
+        setShowCreditModal(true);
+      } else {
+        setError(e.message ?? '분석 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoading(false);
     }
@@ -182,6 +256,7 @@ export default function Analysis() {
   return (
     <div className="app-shell">
       <Sidebar />
+      {showCreditModal && <CreditModal onClose={() => setShowCreditModal(false)} navigate={navigate} />}
       <main className="fm-main">
         <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24, height: '100%' }}>
           <div>
@@ -280,7 +355,15 @@ export default function Analysis() {
             <div style={{ flex: 1, position: 'relative', borderRadius: 16, overflow: 'hidden', border: '1.5px solid #E5E7EB', minHeight: 0 }}>
               <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
 
-              {!pin && (
+              {loading && (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.75)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, backdropFilter: 'blur(2px)' }}>
+                  <div style={{ width: 44, height: 44, border: '4px solid #E5E7EB', borderTopColor: '#2552FE', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  <p style={{ marginTop: 14, fontSize: 13, fontWeight: 600, color: '#374151' }}>AI가 입지를 분석하고 있어요...</p>
+                  <p style={{ marginTop: 4, fontSize: 11, color: '#9CA3AF' }}>잠시만 기다려주세요</p>
+                </div>
+              )}
+
+              {!pin && !loading && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'rgba(255,255,255,0.92)', borderRadius: 12, padding: '14px 22px', boxShadow: '0 4px 16px rgba(0,0,0,0.10)', pointerEvents: 'none', textAlign: 'center' }}>
                   <div style={{ fontSize: 24, marginBottom: 6 }}>📍</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>지도를 클릭해 분석 위치를 선택하세요</div>

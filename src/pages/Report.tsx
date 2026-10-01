@@ -55,6 +55,7 @@ export default function Report() {
   const [credits, setCredits] = useState<number>(0);
   const [unlocking, setUnlocking] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [unlockError, setUnlockError] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -70,12 +71,13 @@ export default function Report() {
   const handleUnlock = async () => {
     if (!id) return;
     setUnlocking(true);
+    setUnlockError('');
     try {
       const res = await client.post(`/api/v1/reports/${id}/unlock`);
       setReport(prev => prev ? { ...prev, isPaid: true, locked: false, summaryJson: res.data.summaryJson } : prev);
       setCredits(c => Math.max(0, c - 1));
     } catch (e: any) {
-      alert(e.response?.data?.message ?? '잠금 해제에 실패했습니다.');
+      setUnlockError(e.response?.data?.message ?? '잠금 해제에 실패했습니다.');
     } finally {
       setUnlocking(false);
     }
@@ -115,19 +117,22 @@ export default function Report() {
               </div>
               <p style={{ fontSize: 13, color: '#9CA3AF' }}>{report.createdAt?.slice(0, 10)} 분석 생성</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 13, color: '#6B7280' }}>크레딧 <strong style={{ color: '#111827' }}>{credits}개</strong></span>
-              {report.locked && (
-                credits > 0
-                  ? <button onClick={handleUnlock} disabled={unlocking}
-                      style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: unlocking ? 0.6 : 1 }}>
-                      {unlocking ? '처리 중...' : '크레딧으로 잠금 해제'}
-                    </button>
-                  : <button onClick={() => navigate(`/payment/${id}`)}
-                      style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                      리포트 구매
-                    </button>
-              )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 13, color: '#6B7280' }}>크레딧 <strong style={{ color: '#111827' }}>{credits}개</strong></span>
+                {report.locked && (
+                  credits > 0
+                    ? <button onClick={handleUnlock} disabled={unlocking}
+                        style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: unlocking ? 0.6 : 1 }}>
+                        {unlocking ? '처리 중...' : '크레딧으로 잠금 해제'}
+                      </button>
+                    : <button onClick={() => navigate(`/payment/${id}`)}
+                        style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                        리포트 구매
+                      </button>
+                )}
+              </div>
+              {unlockError && <p style={{ fontSize: 12, color: '#EF4444' }}>{unlockError}</p>}
             </div>
           </div>
 

@@ -6,6 +6,35 @@ import { getMe, withdraw, type Me } from '../api/user';
 import { getMyAnalyses, getMyReports } from '../api/reports';
 import type { Analysis, Report } from '../types';
 
+function WithdrawModal({ onConfirm, onClose, error, loading }: { onConfirm: () => void; onClose: () => void; error: string; loading: boolean }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
+      onClick={onClose}>
+      <div className="glass-card" style={{ width: 400, padding: 28, margin: 16 }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827' }}>회원 탈퇴</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 20, lineHeight: 1 }}>×</button>
+        </div>
+        <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6, marginBottom: 20 }}>
+          정말 탈퇴하시겠어요?<br />
+          탈퇴 시 <strong style={{ color: '#EF4444' }}>모든 분석 데이터와 크레딧이 삭제</strong>되며, 복구할 수 없습니다.
+        </p>
+        {error && <p style={{ fontSize: 12, color: '#EF4444', marginBottom: 12 }}>{error}</p>}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onClose} disabled={loading}
+            style={{ flex: 1, height: 44, border: '1.5px solid #E5E7EB', borderRadius: 12, fontSize: 14, fontWeight: 600, color: '#374151', background: '#fff', cursor: 'pointer' }}>
+            취소
+          </button>
+          <button onClick={onConfirm} disabled={loading}
+            style={{ flex: 1, height: 44, background: '#EF4444', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>
+            {loading ? '처리 중...' : '탈퇴하기'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const loginWithToken = useAuthStore((s) => s.loginWithToken);
   const logout = useAuthStore((s) => s.logout);
@@ -15,16 +44,18 @@ export default function Home() {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [withdrawing, setWithdrawing] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawError, setWithdrawError] = useState('');
 
   const handleWithdraw = async () => {
-    if (!window.confirm('정말 탈퇴하시겠어요? 모든 분석 데이터가 삭제됩니다.')) return;
     setWithdrawing(true);
+    setWithdrawError('');
     try {
       await withdraw();
       logout();
       navigate('/');
     } catch (e: any) {
-      alert(e?.response?.data?.error ?? '탈퇴 처리 중 오류가 발생했습니다.');
+      setWithdrawError(e?.response?.data?.error ?? '탈퇴 처리 중 오류가 발생했습니다.');
     } finally {
       setWithdrawing(false);
     }
@@ -62,6 +93,14 @@ export default function Home() {
   return (
     <div className="app-shell">
       <Sidebar />
+      {showWithdrawModal && (
+        <WithdrawModal
+          onConfirm={handleWithdraw}
+          onClose={() => { setShowWithdrawModal(false); setWithdrawError(''); }}
+          error={withdrawError}
+          loading={withdrawing}
+        />
+      )}
       <main className="fm-main">
         <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Header */}
@@ -169,12 +208,11 @@ export default function Home() {
               </Link>
             </div>
             <button
-              onClick={handleWithdraw}
-              disabled={withdrawing}
+              onClick={() => setShowWithdrawModal(true)}
               style={{ border: '1.5px solid #FCA5A5', color: '#EF4444', padding: '8px 14px', borderRadius: 10, fontSize: 13, background: 'none', cursor: 'pointer' }}
-              className="hover:bg-red-50 transition-colors disabled:opacity-40"
+              className="hover:bg-red-50 transition-colors"
             >
-              {withdrawing ? '처리 중...' : '회원 탈퇴'}
+              회원 탈퇴
             </button>
           </div>
         </div>

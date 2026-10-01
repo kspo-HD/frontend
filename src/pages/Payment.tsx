@@ -14,17 +14,19 @@ export default function Payment() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState(3);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const bundle = BUNDLES.find(b => b.type === selected)!;
 
   const handlePurchase = async () => {
     setLoading(true);
+    setError('');
     try {
       await client.post('/api/v1/payments', { bundleType: selected });
       if (reportId && reportId !== 'new') navigate(`/reports/${reportId}`);
       else navigate('/home');
     } catch {
-      alert('결제에 실패했습니다. 다시 시도해주세요.');
+      setError('결제에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -71,6 +73,7 @@ export default function Payment() {
               </div>
             </div>
 
+            {error && <p style={{ fontSize: 12, color: '#EF4444', marginBottom: 10 }}>{error}</p>}
             <button onClick={handlePurchase} disabled={loading}
               style={{ width: '100%', height: 48, background: '#2552FE', color: '#fff', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>
               {loading ? '처리 중...' : `${bundle.price.toLocaleString()}원 결제하기`}

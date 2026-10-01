@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 :root {
   --primary-blue: #2552FE;
   --primary-blue-hover: #1A41D9;
