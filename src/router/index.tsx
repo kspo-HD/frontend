@@ -14,6 +14,7 @@ import Analysis from '../pages/Analysis';
 import Report from '../pages/Report';
 import Payment from '../pages/Payment';
 import Competitors from '../pages/Competitors';
+import DataUsage from '../pages/DataUsage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
   // 창업자 포털 (인증 필요)
   { path: '/home', element: <PrivateRoute><Home /></PrivateRoute> },
   { path: '/payment-history', element: <PrivateRoute><PaymentHistory /></PrivateRoute> },
+  { path: '/data-usage', element: <PrivateRoute><DataUsage /></PrivateRoute> },
   { path: '/analysis', element: <PrivateRoute><Analysis /></PrivateRoute> },
   { path: '/reports/:id', element: <PrivateRoute><Report /></PrivateRoute> },
   { path: '/payment/:id', element: <PrivateRoute><Payment /></PrivateRoute> },

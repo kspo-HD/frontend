@@ -5,6 +5,7 @@ import client from '../api/client';
 interface Stats {
   total: number;
   active: number;
+  publicCount: number;
   categories: { category: string; count: number }[];
   regions: { sido: string; count: number }[];
   types: { type: string; count: number }[];
@@ -26,7 +27,7 @@ export default function Dashboard() {
 
   const summaryCards = [
     { label: '전체 시설 수', value: stats ? stats.total.toLocaleString() + '개' : '–' },
-    { label: '업종 수', value: stats ? stats.categories.length + '종' : '–' },
+    { label: '공공 개방 시설', value: stats ? stats.publicCount.toLocaleString() + '개' : '–' },
     { label: '등록 시도', value: stats ? stats.regions.length + '개' : '–' },
     { label: '정상운영 비율', value: stats ? ((stats.active / stats.total) * 100).toFixed(1) + '%' : '–' },
   ];

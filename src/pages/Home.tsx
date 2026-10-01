@@ -206,6 +206,10 @@ export default function Home() {
                 className="hover:bg-gray-50 transition-colors">
                 이용약관
               </Link>
+              <Link to="/data-usage" style={{ border: '1.5px solid #E5E7EB', color: '#4B5563', padding: '8px 14px', borderRadius: 10, fontSize: 13 }}
+                className="hover:bg-gray-50 transition-colors">
+                사용 데이터
+              </Link>
             </div>
             <button
               onClick={() => setShowWithdrawModal(true)}
