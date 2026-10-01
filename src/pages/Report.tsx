@@ -153,7 +153,7 @@ export default function Report() {
           </div>
 
           {/* Key Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {[
               { label: '입지 점수', value: `${report.score}점`, sub: '100점 만점', highlight: true },
               { label: '경쟁 시설 수', value: `${report.competitorCount}개`, sub: `반경 ${radiusLabel} 내` },
@@ -214,7 +214,7 @@ export default function Report() {
           <div className="glass-card" style={{ padding: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>인근 경쟁 시설</h2>
-              <Link to={`/reports/${id}/competitors`} style={{ fontSize: 13, color: '#2552FE', fontWeight: 500 }}>
+              <Link to={`/reports/${id}/competitors`} className="no-print" style={{ fontSize: 13, color: '#2552FE', fontWeight: 500 }}>
                 전체 보기 →
               </Link>
             </div>
@@ -223,6 +223,11 @@ export default function Report() {
             ) : (
               <CompetitorPreview reportId={id!} />
             )}
+          </div>
+
+          {/* 인쇄 전용 카피라이트 푸터 */}
+          <div className="print-only" style={{ display: 'none', borderTop: '1px solid #E5E7EB', paddingTop: 12, textAlign: 'center' }}>
+            <span style={{ fontSize: 10, color: '#9CA3AF' }}>© 2025 FitMap · fitmap.kr · AI 기반 창업 입지 분석 서비스</span>
           </div>
         </div>
       </main>
@@ -240,7 +245,7 @@ function AiReport({ ai }: { ai: AiSummary }) {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="ai-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {ai.market_analysis && (
           <div>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>시장 분석</h3>
@@ -267,7 +272,7 @@ function AiReport({ ai }: { ai: AiSummary }) {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div className="ai-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {ai.cost_saving_tips && ai.cost_saving_tips.length > 0 && (
           <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 14, padding: 16 }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: '#92400E', marginBottom: 10 }}>비용 절감 전략</h3>
@@ -294,7 +299,7 @@ function AiReport({ ai }: { ai: AiSummary }) {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+      <div className="ai-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         {ai.risks && ai.risks.length > 0 && (
           <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 14, padding: 16 }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: '#991B1B', marginBottom: 10 }}>위험 요인</h3>

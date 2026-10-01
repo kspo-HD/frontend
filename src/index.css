@@ -11,30 +11,61 @@
   .app-shell > aside,
   .no-print { display: none !important; }
 
-  /* 인쇄 전용 헤더 표시 */
+  /* 인쇄 전용 헤더/푸터 표시 */
   .print-only { display: block !important; }
 
   /* 레이아웃 리셋 */
   body, .app-shell, .fm-main { background: #fff !important; }
   .app-shell { display: block !important; }
-  .fm-main { padding: 0 !important; overflow: visible !important; }
-
-  #report-print {
-    padding: 16px 24px !important;
-    gap: 18px !important;
+  .fm-main {
+    padding: 0 !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
-  /* 유리 카드 테두리만 */
+  #report-print {
+    padding: 0 !important;
+    gap: 14px !important;
+  }
+
+  /* 유리 카드 테두리만, 페이지 분리 방지 */
   .glass-card {
     box-shadow: none !important;
     border: 1px solid #E5E7EB !important;
     background: #fff !important;
     break-inside: avoid;
+    page-break-inside: avoid;
   }
+
+  /* Key Metrics: 4열 → 2×2 */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* AI 리포트 2열 그리드: 1열로 */
+  .ai-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* AI 리포트 3열 그리드: 2열로 */
+  .ai-3col {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 헤더 flex 세로 정렬 */
+  #report-print > div:nth-child(2) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+  }
+
+  /* 폰트 크기 소폭 축소 */
+  body { font-size: 12px !important; }
 
   /* 페이지 설정 */
   @page {
-    margin: 16mm 14mm;
+    margin: 14mm 12mm;
     size: A4;
   }
 }

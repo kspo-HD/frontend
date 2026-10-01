@@ -81,6 +81,10 @@ export default function Sidebar() {
         )}
 
         {/* User Profile */}
+        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: 10, lineHeight: 1.5 }}>
+          © 2025 FitMap
+        </p>
+
         {isLoggedIn ? (
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: 13, flexShrink: 0 }}>
