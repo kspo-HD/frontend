@@ -178,23 +178,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* CTA Banner */}
-          <div style={{ background: '#EEF2FF', border: '1.5px solid #C7D2FE', borderRadius: 16, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 20 }}>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#1E3A8A' }}>새 입지 분석 시작하기</p>
-              <p style={{ fontSize: 13, color: '#4B5563', marginTop: 4, lineHeight: 1.5 }}>
-                업종과 지역을 입력하면 경쟁 강도·폐업률·추천 등급을 바로 확인할 수 있어요.
-              </p>
-            </div>
-            <Link
-              to="/analysis"
-              style={{ background: '#2552FE', color: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, flexShrink: 0 }}
-              className="hover:opacity-90 transition-opacity"
-            >
-              분석 시작
-            </Link>
-          </div>
-
           {/* Bottom Links */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, paddingBottom: 12 }}>
             <div style={{ display: 'flex', gap: 10 }}>

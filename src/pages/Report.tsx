@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import client from '../api/client';
+import { useCreditStore } from '../store/creditStore';
 
 interface ReportData {
   id: string;
@@ -137,7 +138,7 @@ function buildMarkdown(report: ReportData, ai: AiSummary | null, competitors: an
 
   lines.push('---');
   lines.push('');
-  lines.push('*© 2025 FitMap · fitmap.kr · AI 기반 창업 입지 분석 서비스*');
+  lines.push('*© 2026 FitMap · fitmap.kr · AI 기반 창업 입지 분석 서비스*');
 
   return lines.join('\n');
 }
@@ -151,8 +152,8 @@ function parseAi(raw: string | null): AiSummary | null {
 export default function Report() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { credits, decrement } = useCreditStore();
   const [report, setReport] = useState<ReportData | null>(null);
-  const [credits, setCredits] = useState<number>(0);
   const [unlocking, setUnlocking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [unlockError, setUnlockError] = useState('');
@@ -160,13 +161,10 @@ export default function Report() {
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      client.get(`/api/v1/reports/${id}`),
-      client.get('/api/v1/credits/remaining'),
-    ]).then(([rRes, cRes]) => {
-      setReport(rRes.data);
-      setCredits(cRes.data.count ?? cRes.data);
-    }).catch(() => navigate('/home')).finally(() => setLoading(false));
+    client.get(`/api/v1/reports/${id}`)
+      .then(rRes => setReport(rRes.data))
+      .catch(() => navigate('/home'))
+      .finally(() => setLoading(false));
   }, [id, navigate]);
 
   const handleUnlock = async () => {
@@ -176,7 +174,7 @@ export default function Report() {
     try {
       const res = await client.post(`/api/v1/reports/${id}/unlock`);
       setReport(prev => prev ? { ...prev, isPaid: true, locked: false, summaryJson: res.data.summaryJson } : prev);
-      setCredits(c => Math.max(0, c - 1));
+      decrement();
     } catch (e: any) {
       setUnlockError(e.response?.data?.message ?? '잠금 해제에 실패했습니다.');
     } finally {
@@ -426,7 +424,7 @@ export default function Report() {
 
           {/* 인쇄 전용 카피라이트 푸터 */}
           <div className="print-only" style={{ display: 'none', borderTop: '1px solid #E5E7EB', paddingTop: 12, textAlign: 'center' }}>
-            <span style={{ fontSize: 10, color: '#9CA3AF' }}>© 2025 FitMap · fitmap.kr · AI 기반 창업 입지 분석 서비스</span>
+            <span style={{ fontSize: 10, color: '#9CA3AF' }}>© 2026 FitMap · fitmap.kr · AI 기반 창업 입지 분석 서비스</span>
           </div>
         </div>
       </main>

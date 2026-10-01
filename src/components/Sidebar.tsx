@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useCreditStore } from '../store/creditStore';
 import { getMe, type Me } from '../api/user';
-import client from '../api/client';
 
 export default function Sidebar() {
   const { isLoggedIn, logout } = useAuthStore();
+  const { credits, fetchCredits, setCredits } = useCreditStore();
   const navigate = useNavigate();
-  const [credits, setCredits] = useState<number | null>(null);
   const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
-    if (!isLoggedIn) { setCredits(null); setMe(null); return; }
-    client.get('/api/v1/credits/remaining').then(r => setCredits(r.data.count ?? 0)).catch(() => {});
+    if (!isLoggedIn) { setCredits(0); setMe(null); return; }
+    fetchCredits();
     getMe().then(setMe).catch(() => {});
   }, [isLoggedIn]);
 
@@ -82,7 +82,7 @@ export default function Sidebar() {
 
         {/* User Profile */}
         <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textAlign: 'center', marginBottom: 10, lineHeight: 1.5 }}>
-          © 2025 FitMap
+          © 2026 FitMap
         </p>
 
         {isLoggedIn ? (
