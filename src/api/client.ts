@@ -12,9 +12,14 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// 응답 인터셉터 — 401 처리
+// 응답 인터셉터 — ApiResponse 자동 unwrap + 401 처리
 client.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    if (res.data && typeof res.data === 'object' && 'success' in res.data) {
+      res.data = res.data.data;
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('access_token');
